@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Lambda Functions Code Translation AI",
+  "main": "index.js",
+  "scripts": {
+    "dev": "sls offline -s api",
+    "build": "sls package -s api"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.109",
+    "serverless-esbuild": "^1.34.0",
+    "serverless-offline": "^12.0.3",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "aws-lambda": "^1.0.7"
+  }
+}

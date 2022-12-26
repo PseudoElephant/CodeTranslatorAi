@@ -1,0 +1,54 @@
+service: 'codetranslator-ai'
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+package:
+   individually: true
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+functions:
+  checkout-session:
+    handler: src/functions/checkout-session/index.handler
+    events:
+      - http:
+          method: POST
+          path: checkout-session/
+  login:
+    handler: src/functions/login/index.handler
+    events:
+      - http:
+          method: POST
+          path: login/
+  logout:
+    handler: src/functions/logout/index.handler
+    events:
+      - http:
+          method: POST
+          path: logout/
+  sign-up:
+    handler: src/functions/sign-up/index.handler
+    events:
+      - http:
+          method: POST
+          path: sign-up/
+  stripe-webhook-handler:
+    handler: src/functions/stripe-webhook-handler/index.handler
+    events:
+      - http: 
+          method: POST
+          path: webhook-stripe/
+  translate:
+    handler: src/functions/translate/index.handler
+    events:
+      - http: 
+          method: POST
+          path: translate/
+  translate-sample:
+    handler: src/functions/translate-sample/index.handler
+    events:
+      - http:
+          method: POST
+          path: translate-sampler/
+
