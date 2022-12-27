@@ -1,7 +1,9 @@
-// src/functions/cars/index.ts
+import * as dotenv from 'dotenv'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-
 import Stripe from 'stripe'
+
+// Load environment variables from .env file
+dotenv.config()
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
     apiVersion: '2022-11-15',
@@ -15,8 +17,11 @@ const handleCheckoutSessionCompleted = async (jsonData: any) => {
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-        const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
-        const sig = _event.headers["stripe-signature"] || "";
+        const webhookSecret = process.env.STRIPE_WEBHOOK_KEY || "";
+        const sig = _event.headers["Stripe-Signature"] || "";
+        console.log(`Stripe-Signature: ${sig}`);
+        console.log(`Webhook Secret: ${webhookSecret}`);
+        console.log(process.env)
 
         const body = _event.body || ""
         const stripeEvent = stripe.webhooks.constructEvent(body, sig, webhookSecret);
