@@ -153,3 +153,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+.esbuild 
+.esbuild-cache
