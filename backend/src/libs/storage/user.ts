@@ -8,7 +8,20 @@ export const getUserTranslations = async (userId: string): Promise<number> => {
         select: {
             translationsLeft: true
         }
-    })
+    });
 
     return user.translationsLeft;
+}
+
+export const decrementUserTranslations = async (userId: string): Promise<void> => {
+    await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            translationsLeft: {
+                decrement: 1
+            }
+        }
+    });
 }

@@ -1,30 +1,21 @@
-// src/functions/cars/index.ts
-import * as dotenv from 'dotenv'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { Configuration, OpenAIApi } from "openai";
-import { z, ZodError } from 'zod'
-import { getUserTranslations } from '../../libs/storage/user';
+import { ZodError } from 'zod'
+import { decrementUserTranslations, getUserTranslations } from '@/storage/user';
+import { newForbiddenResponse, newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@/apigateway/response';
+import { errorMap } from '@/error';
 
-dotenv.config()
+import { TranslatorRequest } from './models';
 
-// Global Vars ============================================================
+/// Constants ============================================================
 const MAX_TOKENS = 300;
 const MODEL = "code-davinci-002";
+
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
+
 const openai = new OpenAIApi(configuration);
-
-
-// Type declarations ============================================================
-const TranslatorRequest = z.object({
-    code: z.string(),
-    languageFrom: z.string(),
-    languageTo: z.string(),
-})
-
-type TranslatorRequest = z.infer<typeof TranslatorRequest>;
-
 
 // Functions ============================================================
 const getPrompt = (translatorRequest: TranslatorRequest): string =>{
@@ -44,85 +35,98 @@ const hasTranslationsLeft = async (userId: string): Promise<boolean> => {
 }
 
 const parseCode = (code: string): string => {
-    //Remove comments?
-
-    //Remove additional \n at the end of string
-    
+    code = code.trimStart();
+    code = code.trimEnd();
     return code
 };
 
-const translate = async (translatorRequest: TranslatorRequest): Promise<string> => {
-    const response = await openai.createCompletion({
-        model: MODEL,
-        prompt: getPrompt(translatorRequest),
-        temperature: 0,
-        max_tokens: MAX_TOKENS,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-        stop: ["###"],
-    });
-    
-    //TODO: Fix crappy return
-    return response.data.choices[0].text || "";
+const decrementTranslations = async (userId: string): Promise<void | APIGatewayProxyResult> => {
+    try {
+        await decrementUserTranslations(userId);
+        return;
+    } catch (err) {
+        return newInternalServerErrorResponse();
+    }
+}
+
+const handleTranslation = async (userId: string, translatorRequest: TranslatorRequest): Promise<APIGatewayProxyResult> => {
+    try {
+        const response = await openai.createCompletion({
+            model: MODEL,
+            prompt: getPrompt(translatorRequest),
+            temperature: 0,
+            max_tokens: MAX_TOKENS,
+            top_p: 1,
+            frequency_penalty: 0,
+            presence_penalty: 0,
+            stop: ["###"],
+        });
+
+        const data = response.data.choices?.[0]?.text || "";
+
+        const decrementErr = await decrementTranslations(userId);
+        if (decrementErr) {
+            return decrementErr;
+        }
+
+        return newSuccessResponse({
+            code: parseCode(data),
+        });
+    } catch (err) {
+        return newInternalServerErrorResponse();
+    }
+}
+
+const validateRequest = async (body: string): Promise<[TranslatorRequest | null, APIGatewayProxyResult | null]> => {
+    let translatorRequest: TranslatorRequest;
+
+    try {
+        const jsonBody = JSON.parse(body)
+        translatorRequest = TranslatorRequest.parse(jsonBody, { errorMap });
+    } catch(err) {
+        if (err instanceof ZodError) {
+            const errMessage = err.issues?.[0].message || "Unknown error";
+            return [null, newInvalidRequestResponse(errMessage)];
+        }
+
+        if (err instanceof SyntaxError) {
+            return [null, newInvalidRequestResponse("Invalid JSON")];
+        }
+
+        return [null, newInternalServerErrorResponse()];
+    }
+
+    return [translatorRequest, null];
 }
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // Check if user has credits
+    const userId = _event.requestContext.authorizer?.userId;
+    if (!userId) {
+        return newInvalidRequestResponse("No user id found");
+    }
+
     try {
-        const userId = "1"; //TODO: Get proper user id
-        if (!hasTranslationsLeft(userId)) {
-            return {
-                statusCode: 403,
-                body: "User does not have translations left",
-            }
+        if (!await hasTranslationsLeft(userId)) {
+            return newForbiddenResponse("You have no credits left");
         }
     } catch (err) {
-        return {
-            statusCode: 500,
-            body: "Internal server error"
-        }
+        return newInternalServerErrorResponse()
     }
-    
-    let translatorRequest: TranslatorRequest;
-    
-    // Parse body
-    try {
-        const jsonBody = JSON.parse(_event.body || "")
-        translatorRequest = TranslatorRequest.parse(jsonBody);
-    } catch(err) {
-        console.log(err);
-        if (err instanceof ZodError) {
-            //TODO: Add better error handling
-            const errMessage = err.errors[0].path[0] + " " + err.errors[0].message;
-            return {
-                statusCode: 400,
-                body: errMessage,
-            }
-        }
+        
+    // Validate request
+    const [ translatorRequest, errResponse ] = await validateRequest(_event.body || "");
+    if (errResponse !== null ) {
+        return errResponse;
+    }
 
-        return {
-            statusCode: 500,
-            body: 'Internal server error'
-        }
+    if (!translatorRequest) {
+        return newInternalServerErrorResponse();
     }
     
     translatorRequest.code = parseCode(translatorRequest.code);
+
+    // Process request
+    return await handleTranslation(userId, translatorRequest);
     
-    // Translate Request/Response
-    try {
-        let translatedCode = await translate(translatorRequest);
-
-        const response = {
-            statusCode: 200,
-            body: JSON.stringify({text: translatedCode}),
-        };
-
-        return response;
-    } catch (err) {
-        return {
-            statusCode: 500,
-            body: 'Internal Server Error',
-        };
-    }
 };

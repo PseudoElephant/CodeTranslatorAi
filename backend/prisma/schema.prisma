@@ -16,7 +16,7 @@ model User {
     updatedAt DateTime @updatedAt
     translationsLeft Int @default(0)
     transactions Transaction[]
-    sessions Session?
+    session Session?
 }
 
 model Package {
@@ -50,7 +50,7 @@ model Transaction {
 model Session {
     id        Int      @id @default(autoincrement())
     expires   DateTime
-    sessionId   String
+    sessionId   String @unique @default(uuid()) 
     createdAt DateTime @default(now())
     userId    String @unique
     user      User     @relation(fields: [userId], references: [id])
