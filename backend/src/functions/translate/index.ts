@@ -1,17 +1,132 @@
-// src/functions/cars/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { Configuration, OpenAIApi } from "openai";
+import { ZodError } from 'zod'
+import { decrementUserTranslations, getUserTranslations } from '@/storage/user';
+import { newForbiddenResponse, newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@/apigateway/response';
+import { errorMap } from '@/error';
+
+import { TranslatorRequest } from './models';
+
+/// Constants ============================================================
+const MAX_TOKENS = 300;
+const MODEL = "code-davinci-002";
+
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
+
+// Functions ============================================================
+const getPrompt = (translatorRequest: TranslatorRequest): string =>{
+    const languageFrom = translatorRequest.languageFrom;
+    const languageTo = translatorRequest.languageTo;
+    const code = translatorRequest.code;
+    
+    return `##### Translate this code from ${languageFrom} into ${languageTo}
+    ### ${languageFrom}
+    ${code}
+    ### ${languageTo}`
+}
+
+const hasTranslationsLeft = async (userId: string): Promise<boolean> => {
+    const tranlationsLeft = await getUserTranslations(userId);
+    return tranlationsLeft >= 1
+}
+
+const parseCode = (code: string): string => {
+    code = code.trimStart();
+    code = code.trimEnd();
+    return code
+};
+
+const decrementTranslations = async (userId: string): Promise<void | APIGatewayProxyResult> => {
+    try {
+        await decrementUserTranslations(userId);
+        return;
+    } catch (err) {
+        return newInternalServerErrorResponse();
+    }
+}
+
+const handleTranslation = async (userId: string, translatorRequest: TranslatorRequest): Promise<APIGatewayProxyResult> => {
+    try {
+        const response = await openai.createCompletion({
+            model: MODEL,
+            prompt: getPrompt(translatorRequest),
+            temperature: 0,
+            max_tokens: MAX_TOKENS,
+            top_p: 1,
+            frequency_penalty: 0,
+            presence_penalty: 0,
+            stop: ["###"],
+        });
+
+        const data = response.data.choices?.[0]?.text || "";
+
+        const decrementErr = await decrementTranslations(userId);
+        if (decrementErr) {
+            return decrementErr;
+        }
+
+        return newSuccessResponse({
+            code: parseCode(data),
+        });
+    } catch (err) {
+        return newInternalServerErrorResponse();
+    }
+}
+
+const validateRequest = async (body: string): Promise<[TranslatorRequest | null, APIGatewayProxyResult | null]> => {
+    let translatorRequest: TranslatorRequest;
+
+    try {
+        const jsonBody = JSON.parse(body)
+        translatorRequest = TranslatorRequest.parse(jsonBody, { errorMap });
+    } catch(err) {
+        if (err instanceof ZodError) {
+            const errMessage = err.issues?.[0].message || "Unknown error";
+            return [null, newInvalidRequestResponse(errMessage)];
+        }
+
+        if (err instanceof SyntaxError) {
+            return [null, newInvalidRequestResponse("Invalid JSON")];
+        }
+
+        return [null, newInternalServerErrorResponse()];
+    }
+
+    return [translatorRequest, null];
+}
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    try {
-        const response = {
-            statusCode: 200,
-            body: _event.path,
-        };
-        return response;
-    } catch (err) {
-        return {
-            statusCode: 500,
-            body: 'Internal Server Error',
-        };
+    // Check if user has credits
+    const userId = _event.requestContext.authorizer?.userId;
+    if (!userId) {
+        return newInvalidRequestResponse("No user id found");
     }
+
+    try {
+        if (!await hasTranslationsLeft(userId)) {
+            return newForbiddenResponse("You have no credits left");
+        }
+    } catch (err) {
+        return newInternalServerErrorResponse()
+    }
+        
+    // Validate request
+    const [ translatorRequest, errResponse ] = await validateRequest(_event.body || "");
+    if (errResponse) {
+        return errResponse;
+    }
+
+    if (!translatorRequest) {
+        return newInternalServerErrorResponse();
+    }
+    
+    translatorRequest.code = parseCode(translatorRequest.code);
+
+    // Process request
+    return await handleTranslation(userId, translatorRequest);
+    
 };

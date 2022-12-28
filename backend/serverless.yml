@@ -9,6 +9,8 @@ provider:
   runtime: nodejs18.x
   region: us-east-1
 functions:
+  authorizer:
+    handler: src/functions/authorizer/index.handler
   checkout-session:
     handler: src/functions/checkout-session/index.handler
     events:
@@ -35,16 +37,26 @@ functions:
           path: sign-up/
   stripe-webhook-handler:
     handler: src/functions/stripe-webhook-handler/index.handler
+    environment:
+      STRIPE_SECRET_KEY: ${file(./config.production.json):STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_KEY: ${file(./config.production.json):STRIPE_WEBHOOK_KEY}
     events:
       - http: 
           method: POST
           path: webhook-stripe/
   translate:
     handler: src/functions/translate/index.handler
+    timeout: 20
+    environment:
+      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
+      OPENAI_API_KEY: ${file(./config.production.json):OPENAI_API_KEY}
     events:
       - http: 
           method: POST
           path: translate/
+          authorizer: 
+            name: authorizer
+            identitySource: method.request.header.Authorization
   translate-sample:
     handler: src/functions/translate-sample/index.handler
     events:
