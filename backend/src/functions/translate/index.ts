@@ -116,7 +116,7 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
         
     // Validate request
     const [ translatorRequest, errResponse ] = await validateRequest(_event.body || "");
-    if (errResponse !== null ) {
+    if (errResponse) {
         return errResponse;
     }
 

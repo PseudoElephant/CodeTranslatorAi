@@ -1,4 +1,4 @@
-import { APIGatewayAuthorizerEvent, AuthResponse, Context, CustomAuthorizerEvent, PolicyDocument } from 'aws-lambda'
+import { APIGatewayAuthorizerEvent, AuthResponse, Context, PolicyDocument } from 'aws-lambda'
 
 // generatePolicy creates a policy document to allow this user on this API:
 function generatePolicy (effect: string, resource: string): PolicyDocument {
@@ -24,11 +24,9 @@ export async function handler (event: APIGatewayAuthorizerEvent, context: Contex
       principalId: 'user',
       policyDocument: policyDoc,
       context: {
-        userId: '1923e368-916f-4de4-a942-25ef6204503d', // TODO: Get user id from session
+        userId: '8b3b7f66-dda2-462a-a7ca-3618fc7c9218', // TODO: Get user id from session
       }
     } as AuthResponse
-
-
 
     return response
 }

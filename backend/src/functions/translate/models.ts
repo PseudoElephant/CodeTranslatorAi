@@ -41,19 +41,14 @@ export const ValidLanguagesEnum = z.enum([
     "ocaml",
 ]);
 
-// ValidLanguagesEnumInsensitive is a case-insensitive version of ValidLanguagesEnum
-export const ValidLanguagesEnumInsensitive = ValidLanguagesEnum.transform(
-    (val) => val.toLowerCase(),
-)
-
 // ValidLanguagesEnum is a list of all languages supported by the completion model
 export type ValidLanguagesEnum = z.infer<typeof ValidLanguagesEnum>;
 
 // TranslatorRequest is the request body for the translate function
 export const TranslatorRequest = z.object({
     code: z.string(),
-    languageFrom: ValidLanguagesEnumInsensitive,
-    languageTo: ValidLanguagesEnumInsensitive,
+    languageFrom: ValidLanguagesEnum,
+    languageTo: ValidLanguagesEnum,
 })
 
 // TranslatorRequest is the request body for the translate function

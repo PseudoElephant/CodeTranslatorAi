@@ -46,7 +46,7 @@ functions:
           path: webhook-stripe/
   translate:
     handler: src/functions/translate/index.handler
-    timeout: 20'
+    timeout: 20
     environment:
       DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
       OPENAI_API_KEY: ${file(./config.production.json):OPENAI_API_KEY}
