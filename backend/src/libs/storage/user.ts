@@ -25,3 +25,16 @@ export const decrementUserTranslations = async (userId: string): Promise<void> =
         }
     });
 }
+
+export const incrementUserTranslations = async (userId: string, incrementValue: number): Promise<void> => {
+    await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            translationsLeft: {
+                increment: incrementValue
+            }
+        }
+    })
+}
