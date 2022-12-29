@@ -1,3 +1,5 @@
+import { User } from "@prisma/client";
+import { string } from "zod";
 import prisma from "./prisma"
 
 export const getUserTranslations = async (userId: string): Promise<number> => {
@@ -24,4 +26,18 @@ export const decrementUserTranslations = async (userId: string): Promise<void> =
             }
         }
     });
+}
+
+export const getUserPasswordAndIdFromEmail = async (email: string): Promise<{id: string, password: string}> => {
+    const user = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: email
+        }, 
+        select: {
+            password: true,
+            id: true
+        }
+    });
+
+    return user;
 }

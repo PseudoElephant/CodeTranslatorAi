@@ -52,3 +52,12 @@ export const newNotFoundResponse = (message: string): APIGatewayProxyResult => {
         })
     }
 }
+
+export const newUnauthorizedResponse = (): APIGatewayProxyResult => {
+    return {
+        statusCode: 401,
+        body: JSON.stringify({
+            message: "Unauthorized"
+        })
+    }
+}

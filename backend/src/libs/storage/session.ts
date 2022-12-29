@@ -1,5 +1,12 @@
 import prisma from "./prisma"
 
+const createExpirationDate = (): Date => {
+    //TODO: Set better expiration time options
+    let exprirationDate = new Date();
+    exprirationDate.setHours(exprirationDate.getHours() + 2);
+    return exprirationDate;
+}
+
 export const getUserIdFromSession = async (sessionId: string): Promise<string> => {
     const session = await prisma.session.findUniqueOrThrow({
         where: {
@@ -11,4 +18,54 @@ export const getUserIdFromSession = async (sessionId: string): Promise<string> =
     });
 
     return session.userId;
+}
+
+export const createNewSession = async (userId: string): Promise<string> => {
+    let exprirationDate = createExpirationDate();
+
+    let session = await prisma.session.create({
+        data: {
+            userId: userId,
+            expires: exprirationDate,
+        }
+    })
+    
+    return session.sessionId;
+}
+
+export const updateUserSession = async (userId: string): Promise<string> => {
+    let exprirationDate = createExpirationDate();
+
+    let session = await prisma.session.update({
+        where: {
+            userId: userId
+        },
+        data: {
+            expires: exprirationDate
+        }
+    });
+
+    return session.sessionId
+}
+
+export const deleteUserSession = async (userId: string): Promise<void> => {
+    await prisma.session.delete({
+        where: {
+            userId: userId
+        }
+    })
+}
+
+export const getSessionFromUserId = async (userId: string): Promise<{ id: number, expires: Date }> => {
+    const session = await prisma.session.findUniqueOrThrow({
+        where: {
+            userId: userId
+        },
+        select: {
+            expires: true,
+            id: true
+        }
+    })
+
+    return session
 }
