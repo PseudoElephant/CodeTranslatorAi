@@ -21,6 +21,7 @@ model User {
 
 model Package {
     id        Int      @id @default(autoincrement())
+    stripeID  String    @unique
     name      String
     priceUsd     Float
     numTranslations Int
