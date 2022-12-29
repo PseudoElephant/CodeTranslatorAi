@@ -36,7 +36,7 @@ const calculateCredits = async (session: Stripe.Checkout.Session): Promise<numbe
 
     for (const item of session.line_items.data) {
         const credits = await getPackageCreditsFromStripeId(item.id)
-        totalCredits += credits
+        totalCredits += credits * (item.quantity || 1)
     }
 
     return totalCredits
