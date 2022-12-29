@@ -57,7 +57,7 @@ const getPackageSelectedPackage = async (req: CheckoutRequest): Promise<Package 
     }
 }
 
-const processRequest = async (pck: Package): Promise<APIGatewayProxyResult> => {
+const processRequest = async (userId: string,  pck: Package): Promise<APIGatewayProxyResult> => {
     const session = await stripe.checkout.sessions.create({
         line_items: [
           {
@@ -66,6 +66,12 @@ const processRequest = async (pck: Package): Promise<APIGatewayProxyResult> => {
           },
         ],
         mode: 'payment',
+        client_reference_id: userId,
+        payment_intent_data: {
+            setup_future_usage: "on_session"
+        },
+        locale: "auto",
+        automatic_tax: { enabled: true },
         success_url: `${DOMAIN}/success`,
         cancel_url: `${DOMAIN}/cancel`,
     });
@@ -80,6 +86,8 @@ const processRequest = async (pck: Package): Promise<APIGatewayProxyResult> => {
 }
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const userId = _event.requestContext.authorizer?.userId
+
     const parseReponse = parseRequest(_event.body)
     if (isApiGatewayProxyResult(parseReponse)) {
         return parseReponse
@@ -90,5 +98,5 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
         return packageResponse
     }
 
-    return processRequest(packageResponse)
+    return processRequest(userId, packageResponse)
 };
