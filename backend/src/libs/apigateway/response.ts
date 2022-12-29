@@ -33,3 +33,22 @@ export const newSuccessResponse = (body: any): APIGatewayProxyResult => {
         body: JSON.stringify(body)
     }
 }
+
+export const newRedirectResponse = (location: string):  APIGatewayProxyResult => {
+    return {
+        statusCode: 303,
+        headers: {
+            Location: location,
+        },
+        body: ""
+    }
+}
+
+export const newNotFoundResponse = (message: string): APIGatewayProxyResult => {
+    return {
+        statusCode: 404,
+        body: JSON.stringify({
+            message: message ? `Not Found: ${message}` : `Not Found`
+        })
+    }
+}

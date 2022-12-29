@@ -8,15 +8,23 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
+  tracing:
+      apiGateway: true
+
 functions:
   authorizer:
     handler: src/functions/authorizer/index.handler
   checkout-session:
     handler: src/functions/checkout-session/index.handler
+    environment:
+      DOMAIN: 'https://localhost:3000'
     events:
       - http:
           method: POST
           path: checkout-session/
+          authorizer: 
+            name: authorizer
+            identitySource: method.request.header.Authorization
   login:
     handler: src/functions/login/index.handler
     events:
@@ -63,4 +71,15 @@ functions:
       - http:
           method: POST
           path: translate-sampler/
-
+	
+resources:
+  Resources:
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
