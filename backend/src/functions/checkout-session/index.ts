@@ -16,7 +16,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
     typescript: true,
 })
 
-const DOMAIN = 'https://localhost:3000';
+const DOMAIN = process.env.DOMAIN
 
 const parseRequest = (body: string | null): (CheckoutRequest | APIGatewayProxyResult) => {
     try {
@@ -57,11 +57,11 @@ const getPackageSelectedPackage = async (req: CheckoutRequest): Promise<Package 
     }
 }
 
-const processRequest = async (userId: string,  pck: Package): Promise<APIGatewayProxyResult> => {
+const processRequest = async (userId: string,  packageItem: Package): Promise<APIGatewayProxyResult> => {
     const session = await stripe.checkout.sessions.create({
         line_items: [
           {
-            price: pck.stripeID,
+            price: packageItem.stripeID,
             quantity: 1,
           },
         ],

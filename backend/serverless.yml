@@ -16,6 +16,8 @@ functions:
     handler: src/functions/authorizer/index.handler
   checkout-session:
     handler: src/functions/checkout-session/index.handler
+    environment:
+      DOMAIN: 'https://localhost:3000'
     events:
       - http:
           method: POST
