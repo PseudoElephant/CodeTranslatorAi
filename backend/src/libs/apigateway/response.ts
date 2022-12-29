@@ -18,6 +18,15 @@ export const newInternalServerErrorResponse = (message?: string): APIGatewayProx
     }
 }
 
+export const newConflictErrorResponse = (message?: string): APIGatewayProxyResult => {
+    return {
+        statusCode: 409,
+        body: JSON.stringify({
+           message: message ? `Internal Server Error: ${message}` : "Internal Server Error"
+        })
+    }
+}
+
 export const newForbiddenResponse = (message: string): APIGatewayProxyResult => {
     return {
         statusCode: 403,

@@ -87,7 +87,9 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
     try {
         const response = {
             statusCode: 200,
-            body: _event.path,
+            body: JSON.stringify({
+                message: 'Login successful'
+                }),
             headers: {
                 Authorizer: sessionId
             }

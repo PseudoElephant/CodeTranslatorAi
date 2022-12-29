@@ -1,5 +1,3 @@
-import { User } from "@prisma/client";
-import { string } from "zod";
 import prisma from "./prisma"
 
 export const getUserTranslations = async (userId: string): Promise<number> => {
@@ -40,4 +38,13 @@ export const getUserPasswordAndIdFromEmail = async (email: string): Promise<{id:
     });
 
     return user;
+}
+
+export const createNewUser = async (email: string, hashedPassword: string) => {
+    await prisma.user.create({
+        data: {
+            email: email,
+            password: hashedPassword
+        }
+    });
 }

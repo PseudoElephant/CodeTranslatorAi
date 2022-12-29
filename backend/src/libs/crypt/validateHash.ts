@@ -1,26 +1,21 @@
-import bcrypt from "bcrypt" 
+import bcryptjs from 'bcryptjs'
 
 const saltRounds = 10;
 
-// export const encrypt = async (pass: string) => {
-//   const salt = await bcrypt.genSalt(saltRounds);
-//   console.log(`Salt: ${salt}`);
-//   return await bcrypt.hash(pass, salt);
-// };
+export const encrypt = async (pass: string) => {
+  try {
+    const salt = await bcryptjs.genSalt(saltRounds);
+    return await bcryptjs.hash(pass, salt);
+  } catch (err) {
+    throw err;
+  }
+};
 
-export const validateHash = async (password: string, hash: string): Promise<boolean> => {
-  return password === "pass";
-  
-  //TODO: Figure out why this code gives the following error: 
-  // CodeTranslatorAi/backend/.esbuild/.build/src/functions/login/package.json does not exist
-  
-  // return bcrypt
-  //   .compare(password, hash)
-  //   .then((res) => {
-  //     return res;
-  //   })
-  //   .catch((err) => {
-  //     console.error(err);
-  //     return false;
-  //   });
+export const validateHash = async (password: string, hashedPassword: string): Promise<boolean> => {
+  try {
+    const isMatch = await bcryptjs.compare(password, hashedPassword);
+    return isMatch;
+  } catch (error) {
+    throw error;
+  }
 };
