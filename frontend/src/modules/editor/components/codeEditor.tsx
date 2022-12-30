@@ -1,7 +1,6 @@
 
-import MonacoEditor, { Monaco, useMonaco } from "@monaco-editor/react";
-import { useEffect, useRef } from "react";
-import { useMonacoThemes } from "../hooks/use-monacothemes";
+import dynamic from "next/dynamic";
+const MonacoEditor = dynamic(import("@monaco-editor/react"), { ssr: false });
 
 import FontFaceObserver from 'fontfaceobserver';
 import { editor } from "monaco-editor";
@@ -55,6 +54,7 @@ const Editor: React.FC<Props> = (props) => {
                 wordWrap: "on",
                 autoIndent: "full",
                 insertSpaces: true,
+                renderValidationDecorations: "off",
             }}
         />
     )
