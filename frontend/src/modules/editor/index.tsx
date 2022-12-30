@@ -8,7 +8,12 @@ const Languages = [
     items: [
       { name: "TypeScript", value: "typescript" },
       { name: "Rust", value: "rust" },
-      { name: "C++", value: "cplusplus" },
+      { name: "C++", value: "cpp" },
+      { name: "C#", value: "csharp" },
+      { name: "Java", value: "java" },
+      { name: "Go", value: "go" },
+      { name: "Kotlin", value: "kotlin" },
+      { name: "Swift", value: "swift" },
     ],
   },
   {
@@ -16,14 +21,23 @@ const Languages = [
     items: [
       { name: "JavaScript", value: "javascript" },
       { name: "Python", value: "python" },
+      { name: "Ruby", value: "ruby" },
+      { name: "PHP", value: "php" },
+      { name: "Perl", value: "perl" },
+      { name: "Lua", value: "lua" },
     ],
   },
 ];
 
 const Translator = () => {
-  const [doc, setDoc] = useState<string>("# Hello, World!\n");
-  const handleDocChange = useCallback((newDoc: string) => {
-    setDoc(newDoc);
+  const [codeFrom, setCodeFrom] = useState<string>("# Hello, World!\n");
+  const handleChangeFrom = useCallback((newCodeFrom: string) => {
+    setCodeFrom(newCodeFrom);
+  }, []);
+
+  const [codeTo, setCodeTo] = useState<string>("# Hello, World!\n");
+  const handleChangeTo = useCallback((newCodeTo: string) => {
+    setCodeTo(newCodeTo);
   }, []);
 
   const [fromLanguage, setFromLanguage] = useState<string>("typescript");
@@ -64,9 +78,11 @@ const Translator = () => {
       <div className="w-full h-px bg-neutral-6" />
       <div className="w-full h-80 bg-neutral-2 rounded-md p-3 grid grid-cols-2 gap-3">
         <div className="w-full bg-neutral-3 rounded-md">
-          <CodeEditor initialDoc={doc} onChange={handleDocChange}  />
+          <CodeEditor value={codeFrom} onValueChange={handleChangeFrom} language={fromLanguage} />
         </div>
-        <div className="w-full bg-neutral-3 rounded-md"></div>
+        <div className="w-full bg-neutral-3 rounded-md">
+          <CodeEditor value={codeTo} onValueChange={handleChangeTo} language={toLanguage} options={{ readonly: true }} />
+        </div>
       </div>
     </div>
   );

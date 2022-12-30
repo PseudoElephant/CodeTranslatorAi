@@ -1,6 +1,6 @@
 import React from "react";
 import Alert from "../common/components/alert";
-import Translator from "../modules/translator";
+import Translator from "../modules/editor";
 
 export default function Home() {
   return (

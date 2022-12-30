@@ -16,6 +16,7 @@
     "@codemirror/state": "^6.2.0",
     "@codemirror/theme-one-dark": "^6.1.0",
     "@codemirror/view": "^6.7.1",
+    "@monaco-editor/react": "^4.4.6",
     "@next/font": "13.1.1",
     "@radix-ui/react-checkbox": "^1.0.1",
     "@radix-ui/react-icons": "^1.1.1",

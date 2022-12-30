@@ -21,6 +21,8 @@ type Dropdown = {
   }[];
   ariaLabel: string;
   placeholder: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
 };
 
 const SelectItem = ({ children, value }: SelectItem) => {
@@ -37,9 +39,11 @@ const SelectItem = ({ children, value }: SelectItem) => {
   );
 };
 
-const Dropdown = ({ placeholder, ariaLabel, groups }: Dropdown) => {
+const Dropdown = ({ placeholder, ariaLabel, groups, value, onValueChange }: Dropdown) => {
+  
+
   return (
-    <Select.Root>
+    <Select.Root value={value} onValueChange={onValueChange}>
       <Select.Trigger
         aria-label={ariaLabel}
         className="bg-neutral-1 inline-flex items-center justify-between rounded text-xs leading-none h-8 w-full px-4 gap-1 border shadow-neutral-6 hover:bg-neutral-3"
