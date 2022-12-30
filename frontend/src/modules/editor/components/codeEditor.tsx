@@ -1,6 +1,10 @@
 
-import MonacoEditor from "@monaco-editor/react";
+import MonacoEditor, { Monaco, useMonaco } from "@monaco-editor/react";
+import { useEffect, useRef } from "react";
 import { useMonacoThemes } from "../hooks/use-monacothemes";
+
+import FontFaceObserver from 'fontfaceobserver';
+import { editor } from "monaco-editor";
 
 interface Props {
     value: string;
@@ -19,12 +23,24 @@ const Editor: React.FC<Props> = (props) => {
         }
     }
 
+    const onEditorDidMount = async (_editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
+        const font = new FontFaceObserver("Fira Code");
+        try { 
+        await font.load();
+            monaco.editor.remeasureFonts();
+        }
+        catch (e) {
+            console.error("Failed to load font `Fira Code`")
+        }
+    }
+
     return (
         <MonacoEditor
             theme="github-light"
             language={props.language}
             value={props.value}
             onChange={handleEditorChange}
+            onMount={onEditorDidMount}
             options={{
                 minimap: {
                     enabled: false,
@@ -32,7 +48,13 @@ const Editor: React.FC<Props> = (props) => {
                 fontFamily: "Fira Code",
                 fontLigatures: true,
                 readOnly: props.options?.readonly,
-                
+                tabSize: 4,
+                cursorStyle: "line",
+                formatOnPaste: true,
+                formatOnType: true,
+                wordWrap: "on",
+                autoIndent: "full",
+                insertSpaces: true,
             }}
         />
     )

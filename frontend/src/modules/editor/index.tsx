@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from "react";
+import { useMonaco } from "@monaco-editor/react";
+import React, { useCallback, useEffect, useState } from "react";
 import Dropdown from "../../common/components/dropdown";
 import CodeEditor from "./components/codeEditor";
 
@@ -33,6 +34,7 @@ const Languages = [
 ];
 
 const Translator = () => {
+
   const [codeFrom, setCodeFrom] = useState<string>("# Hello, World!\n");
   const handleChangeFrom = useCallback((newCodeFrom: string) => {
     setCodeFrom(newCodeFrom);
@@ -53,6 +55,7 @@ const Translator = () => {
   const handleToLanguageChange = useCallback((newLanguage: string) => {
     setToLanguage(newLanguage);
   }, []);
+  
 
   return (
     <div>
