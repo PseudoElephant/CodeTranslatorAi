@@ -2,6 +2,9 @@ import React, { useCallback, useState } from "react";
 import Dropdown from "../../common/components/dropdown";
 import CodeEditor from "./components/codeEditor";
 
+// export hooks
+export * from "./hooks/use-monacothemes";
+
 const Languages = [
   {
     group_label: "Strong Typed",
