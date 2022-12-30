@@ -1,19 +1,21 @@
-import { newInternalServerErrorResponse, newInvalidRequestResponse, newUnauthorizedResponse } from '@/apigateway/response';
+import { newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse, newUnauthorizedResponse } from '@/apigateway/response';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { ZodError } from 'zod'
+import { AnyZodObject, z, ZodError } from 'zod'
 import { errorMap } from '@/error';
 import { LoginRequest } from './model';
 import { getUserPasswordAndIdFromEmail } from '@/storage/user';
 import {  PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { validateHash } from '@/crypt/validateHash';
 import { createNewSession, deleteUserSession, getSessionFromUserId } from '@/storage/session';
+import { Session } from '@prisma/client';
+import * as cookie from 'cookie';
 
-const validateRequest = async (body: string): Promise<[LoginRequest | null, APIGatewayProxyResult | null]> => {
-    let loginRequest: LoginRequest;
-
+const validateRequest = async <RequestType extends AnyZodObject>(body: string, parser: RequestType): Promise<[z.infer<RequestType> | null, APIGatewayProxyResult | null]> => {
+    let loginRequest: z.infer<RequestType>;
+    
     try {
         const jsonBody = JSON.parse(body)
-        loginRequest = LoginRequest.parse(jsonBody, { errorMap });
+        loginRequest = parser.parse(jsonBody, { errorMap });
     } catch(err) {
         if (err instanceof ZodError) {
             const errMessage = err.issues?.[0].message || "Unknown error";
@@ -31,7 +33,7 @@ const validateRequest = async (body: string): Promise<[LoginRequest | null, APIG
 }
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const [ loginRequest, errResponse ] = await validateRequest(_event.body || "");
+    const [ loginRequest, errResponse ] = await validateRequest(_event.body || "", LoginRequest);
     if (errResponse) {
         return errResponse;
     }
@@ -46,7 +48,7 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
         user = await getUserPasswordAndIdFromEmail(loginRequest.email);
     } catch (err) {
         if (err instanceof PrismaClientKnownRequestError) {
-            if (err.code === "P2025") {
+            if (err.code === "P2025") { // If email does not exist
                 return newUnauthorizedResponse();
             }
         } 
@@ -65,10 +67,18 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
     }
 
     // Create session for user
-    let session: { id: number, expires: Date } | null;
+    let session: Session | null;
     try {
         session = await getSessionFromUserId(user.id);
-    } catch {
+    } catch(err) {    
+        if (!(err instanceof PrismaClientKnownRequestError)) {
+            return newInternalServerErrorResponse();
+        } 
+
+        if (err.code !== "P2025") { // If it does not find the session
+            return newInternalServerErrorResponse();
+        }
+
         session = null
     }
 
@@ -85,17 +95,12 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
          
     // Return the session id
     try {
-        const response = {
-            statusCode: 200,
-            body: JSON.stringify({
-                message: 'Login successful'
-                }),
-            headers: {
-                Authorizer: sessionId
-            }
-        };
-
-        return response;
+        const newCookie = cookie.serialize("Authorization", sessionId, {
+            maxAge: 5 * 24 * 60 * 60, //days * hours * minutes * seconds, 5 days
+            secure: true,
+            httpOnly: true
+        })
+        return newSuccessResponse({ message: "Login succesful" }, { 'Set-Cookie': newCookie })
     } catch (err) {
         return newInternalServerErrorResponse();
     }
