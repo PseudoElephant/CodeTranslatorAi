@@ -21,7 +21,7 @@ export const getUserIdFromSession = async (sessionId: string): Promise<string> =
     return session.userId;
 }
 
-export const createNewSession = async (userId: string): Promise<string> => {
+export const createNewSession = async (userId: string): Promise<Session> => {
     let exprirationDate = createExpirationDate();
 
     let session = await prisma.session.create({
@@ -31,7 +31,7 @@ export const createNewSession = async (userId: string): Promise<string> => {
         }
     })
     
-    return session.sessionId;
+    return session
 }
 
 export const updateUserSession = async (userId: string): Promise<string> => {
