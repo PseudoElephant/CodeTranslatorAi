@@ -25,7 +25,7 @@ module.exports = {
     },
   },
   /* Comment out to stop using systems theme */
-  darkMode: "class",
+  // darkMode: "class",
   /* Info on plugin: https://windy-radix-palette.vercel.app/docs/palette/aliasing */
   plugins: [require("windy-radix-palette")],
 };

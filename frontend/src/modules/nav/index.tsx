@@ -8,15 +8,12 @@ import Button from "../../common/components/button";
 const Navbar = () => {
   return (
     <nav className="grid grid-cols-3 bg-neutral-1 py-4 px-8 items-center shadow-sm shadow-neutral-4">
-      <Link href="/" className="flex items-center justify-self-start gap-2">
+      <div className="flex items-center justify-self-start gap-2">
         <Logo />
         <h1 className="font-bold">Code Translater AI</h1>
-      </Link>
+      </div>
       <div className="flex items-center justify-self-center gap-4">
-        <Link
-          href="/translator"
-          className="flex items-center gap-1 text-primary-11"
-        >
+        <Link href="/" className="flex items-center gap-1 text-primary-11">
           <DashboardIcon width={20} height={20} />
           <h2 className="text-neutral-12">Translator</h2>
         </Link>
