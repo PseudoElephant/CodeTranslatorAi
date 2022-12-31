@@ -27,6 +27,8 @@ functions:
             identitySource: method.request.header.Authorization
   login:
     handler: src/functions/login/index.handler
+    environment:
+      SESSION_LIFE_TIME_SECONDS: 345600 # 4 * 24 * 60 * 60 - 4 days 
     events:
       - http:
           method: POST

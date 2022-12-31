@@ -4,6 +4,8 @@ import { ZodError } from 'zod'
 import { decrementUserTranslations, getUserTranslations } from '@/storage/user';
 import { newForbiddenResponse, newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@/apigateway/response';
 import { errorMap } from '@/error';
+import { validateRequest } from '@/apigateway/validateRequest';
+import { isApiGatewayProxyResult } from '@/apigateway/guards';
 
 import { TranslatorRequest } from './models';
 
@@ -77,28 +79,6 @@ const handleTranslation = async (userId: string, translatorRequest: TranslatorRe
     }
 }
 
-const validateRequest = async (body: string): Promise<[TranslatorRequest | null, APIGatewayProxyResult | null]> => {
-    let translatorRequest: TranslatorRequest;
-
-    try {
-        const jsonBody = JSON.parse(body)
-        translatorRequest = TranslatorRequest.parse(jsonBody, { errorMap });
-    } catch(err) {
-        if (err instanceof ZodError) {
-            const errMessage = err.issues?.[0].message || "Unknown error";
-            return [null, newInvalidRequestResponse(errMessage)];
-        }
-
-        if (err instanceof SyntaxError) {
-            return [null, newInvalidRequestResponse("Invalid JSON")];
-        }
-
-        return [null, newInternalServerErrorResponse()];
-    }
-
-    return [translatorRequest, null];
-}
-
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // Check if user has credits
     const userId = _event.requestContext.authorizer?.userId;
@@ -115,13 +95,9 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
     }
         
     // Validate request
-    const [ translatorRequest, errResponse ] = await validateRequest(_event.body || "");
-    if (errResponse) {
-        return errResponse;
-    }
-
-    if (!translatorRequest) {
-        return newInternalServerErrorResponse();
+    const translatorRequest = await validateRequest(_event.body || "", TranslatorRequest);
+    if (isApiGatewayProxyResult(translatorRequest)) {
+        return translatorRequest
     }
     
     translatorRequest.code = parseCode(translatorRequest.code);

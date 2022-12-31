@@ -18,6 +18,15 @@ export const newInternalServerErrorResponse = (message?: string): APIGatewayProx
     }
 }
 
+export const newConflictErrorResponse = (message?: string): APIGatewayProxyResult => {
+    return {
+        statusCode: 409,
+        body: JSON.stringify({
+           message: message ? `Conflict Error: ${message}` : "Conflict Error"
+        })
+    }
+}
+
 export const newForbiddenResponse = (message: string): APIGatewayProxyResult => {
     return {
         statusCode: 403,
@@ -27,10 +36,11 @@ export const newForbiddenResponse = (message: string): APIGatewayProxyResult => 
     }
 }
 
-export const newSuccessResponse = (body: any): APIGatewayProxyResult => {
+export const newSuccessResponse = (body: any, headers?: APIGatewayProxyResult["headers"]): APIGatewayProxyResult => {
     return {
         statusCode: 200,
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        headers: headers
     }
 }
 
@@ -49,6 +59,15 @@ export const newNotFoundResponse = (message: string): APIGatewayProxyResult => {
         statusCode: 404,
         body: JSON.stringify({
             message: message ? `Not Found: ${message}` : `Not Found`
+        })
+    }
+}
+
+export const newUnauthorizedResponse = (): APIGatewayProxyResult => {
+    return {
+        statusCode: 401,
+        body: JSON.stringify({
+            message: "Unauthorized"
         })
     }
 }
