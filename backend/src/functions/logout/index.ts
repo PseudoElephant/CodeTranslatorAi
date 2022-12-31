@@ -1,17 +1,23 @@
 // src/functions/cars/index.ts
+import { newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@/apigateway/response';
+import { deleteUserSession } from '@/storage/session';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const userId = _event.requestContext.authorizer?.userId;
+    if (!userId) {
+        return newInvalidRequestResponse("No user id found");
+    }
+    
     try {
-        const response = {
-            statusCode: 200,
-            body: _event.path,
-        };
-        return response;
+        await deleteUserSession(userId);
     } catch (err) {
-        return {
-            statusCode: 500,
-            body: 'Internal Server Error',
-        };
+        return newInternalServerErrorResponse();
+    }
+
+    try {
+        return newSuccessResponse({ message: "Logout succesful" })
+    } catch (err) {
+        return newInternalServerErrorResponse();
     }
 };

@@ -43,6 +43,9 @@ functions:
       - http:
           method: POST
           path: logout/
+          authorizer: 
+            name: authorizer
+            identitySource: method.request.header.Authorization
   sign-up:
     handler: src/functions/sign-up/index.handler
     events:
