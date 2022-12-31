@@ -68,30 +68,30 @@ const createSession = async (userId: string): Promise<Session | APIGatewayProxyR
 }
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const loginRequest = await validateRequest(_event.body || "", LoginRequest);
-    if (isApiGatewayProxyResult(loginRequest)) {
-        return loginRequest;
+    const validateRequestOutput = await validateRequest(_event.body || "", LoginRequest);
+    if (isApiGatewayProxyResult(validateRequestOutput)) {
+        return validateRequestOutput;
     }
 
-    let user = await getUserIdAndHashedPassword(loginRequest.email);
-    if (isApiGatewayProxyResult(user)) {
-        return user;
+    let getUserOutput = await getUserIdAndHashedPassword(validateRequestOutput.email);
+    if (isApiGatewayProxyResult(getUserOutput)) {
+        return getUserOutput;
     }
 
-    let valid = await validatePassword(loginRequest.password, user.password);
-    if (isApiGatewayProxyResult(valid)) {
-        return valid;
+    let validationOutput = await validatePassword(validateRequestOutput.password, getUserOutput.password);
+    if (isApiGatewayProxyResult(validationOutput)) {
+        return validationOutput;
     }
 
-    let session = await createSession(user.id);
-    if (isApiGatewayProxyResult(session)) {
-        return session;
+    let sessionOutput = await createSession(getUserOutput.id);
+    if (isApiGatewayProxyResult(sessionOutput)) {
+        return sessionOutput;
     }
          
     // Return the sessionId as a cookie
     try {
-        const newCookie = cookie.serialize("Authorization", session.sessionId, {
-            maxAge: parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "0"),
+        const newCookie = cookie.serialize("Authorization", sessionOutput.sessionId, {
+            maxAge: parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "345600"),
             secure: true,
             httpOnly: true
         })

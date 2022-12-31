@@ -21,7 +21,7 @@ export const getUserIdFromSession = async (sessionId: string): Promise<string> =
 }
 
 export const createNewSession = async (userId: string): Promise<Session> => {
-    let exprirationDate = createExpirationDate(parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "0"));
+    let exprirationDate = createExpirationDate(parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "345600"));
 
     let session = await prisma.session.create({
         data: {
@@ -34,7 +34,7 @@ export const createNewSession = async (userId: string): Promise<Session> => {
 }
 
 export const updateUserSession = async (userId: string): Promise<string> => {
-    let exprirationDate = createExpirationDate(parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "0"));
+    let exprirationDate = createExpirationDate(parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "345600"));
 
     let session = await prisma.session.update({
         where: {
