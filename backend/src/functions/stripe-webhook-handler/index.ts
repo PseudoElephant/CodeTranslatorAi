@@ -101,7 +101,7 @@ const parseWebhook = (_event: APIGatewayProxyEvent) : Stripe.Event => {
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         const stripeEvent = parseWebhook(_event)
-        const eventType = stripeEvent.type ? stripeEvent.type : '';
+        const eventType = stripeEvent.type || ""
 
         switch (eventType) {
             case 'checkout.session.completed':
@@ -116,7 +116,7 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
             case 'checkout.session.expired':
                 await handleCheckoutExpired(stripeEvent)
             default:
-                console.log('Unhandled event type')
+                throw new Error(`Unhandled event type: ${eventType}`)
                 break;
         }
 
