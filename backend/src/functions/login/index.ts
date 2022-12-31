@@ -6,7 +6,6 @@ import {  PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { validateHash } from '@/crypt/validateHash';
 import { createNewSession, deleteUserSession, getSessionFromUserId } from '@/storage/session';
 import { Session } from '@prisma/client';
-import * as cookie from 'cookie';
 import { validateRequest } from '@/apigateway/validateRequest';
 import { isApiGatewayProxyResult } from '@/apigateway/guards';
 
@@ -88,15 +87,8 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
         return sessionOutput;
     }
          
-    // Return the sessionId as a cookie
     try {
-        const newCookie = cookie.serialize("Authorization", sessionOutput.sessionId, {
-            maxAge: parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "345600"),
-            secure: true,
-            httpOnly: true
-        })
-
-        return newSuccessResponse({ message: "Login succesful" }, { 'Set-Cookie': newCookie })
+        return newSuccessResponse({ accessToken: sessionOutput.sessionId })
     } catch (err) {
         return newInternalServerErrorResponse();
     }

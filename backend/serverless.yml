@@ -64,9 +64,12 @@ functions:
       - http: 
           method: POST
           path: translate/
-          authorizer: 
+          authorizer:
             name: authorizer
+            type: request
+            resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
+
   translate-sample:
     handler: src/functions/translate-sample/index.handler
     events:
