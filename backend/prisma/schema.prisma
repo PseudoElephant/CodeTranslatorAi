@@ -37,7 +37,7 @@ enum TransactionStatus {
 model Transaction {
     id        String      @id @default(uuid())
     createdAt DateTime @default(now())
-    stripeTransactionId String
+    stripeTransactionId String @unique
     user      User     @relation(fields: [userId], references: [id])
     userId    String
     total     Float
