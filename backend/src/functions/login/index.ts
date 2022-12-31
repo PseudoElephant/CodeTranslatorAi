@@ -1,6 +1,6 @@
-import { newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse, newUnauthorizedResponse } from '@/apigateway/response';
+import { newInternalServerErrorResponse, newSuccessResponse, newUnauthorizedResponse } from '@/apigateway/response';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { LoginRequest } from './model';
+import { LoginRequest } from './models';
 import { getUserPasswordAndIdFromEmail } from '@/storage/user';
 import {  PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { validateHash } from '@/crypt/validateHash';

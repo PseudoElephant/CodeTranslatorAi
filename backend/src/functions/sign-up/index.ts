@@ -5,7 +5,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ZodError } from 'zod';
 import { errorMap } from '@/error';
-import { SignUpRequest } from './model';
+import { SignUpRequest } from './models';
 
 const validateRequest = async (body: string): Promise<[SignUpRequest | null, APIGatewayProxyResult | null]> => {
     let signUpRequest: SignUpRequest;
