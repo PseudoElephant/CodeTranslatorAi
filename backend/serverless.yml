@@ -22,9 +22,13 @@ functions:
       - http:
           method: POST
           path: checkout-session/
-          authorizer: 
+          authorizer:
             name: authorizer
+            type: request
+            resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
+
+            
   login:
     handler: src/functions/login/index.handler
     environment:
@@ -69,13 +73,6 @@ functions:
             type: request
             resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
-
-  translate-sample:
-    handler: src/functions/translate-sample/index.handler
-    events:
-      - http:
-          method: POST
-          path: translate-sampler/
 	
 resources:
   Resources:
