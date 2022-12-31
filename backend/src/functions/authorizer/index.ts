@@ -2,7 +2,7 @@ import { getSessionFromSessionId, getUserIdFromSession } from '@/storage/session
 import { APIGatewayAuthorizerResult, APIGatewayRequestAuthorizerEvent, AuthResponse, Context, PolicyDocument } from 'aws-lambda'
 
 // generatePolicy creates a policy document to allow this user on this API:
-const  generatePolicyRespinse = (effect: string, resource: string, context? : APIGatewayAuthorizerResult["context"]): APIGatewayAuthorizerResult => {
+const  generatePolicyResponse = (effect: string, resource: string, context? : APIGatewayAuthorizerResult["context"]): APIGatewayAuthorizerResult => {
   const policyDocument = {} as PolicyDocument
   if (effect && resource) {
     policyDocument.Version = '2012-10-17'
@@ -25,18 +25,18 @@ export async function handler (event: APIGatewayRequestAuthorizerEvent, context:
     const sessionId =  event.headers?.['Authorization'] || ""
 
     if (!sessionId) {
-      return generatePolicyRespinse('Deny', event.methodArn)
+      return generatePolicyResponse('Deny', event.methodArn)
     }
 
     let session
     try {
       session = await getSessionFromSessionId(sessionId)
     } catch (e) {
-      return generatePolicyRespinse('Deny', event.methodArn)
+      return generatePolicyResponse('Deny', event.methodArn)
     }
 
     if (session.expires < new Date()) {
-      return generatePolicyRespinse('Deny', event.methodArn)
+      return generatePolicyResponse('Deny', event.methodArn)
     }
 
     let userId
@@ -44,8 +44,8 @@ export async function handler (event: APIGatewayRequestAuthorizerEvent, context:
     try { 
       userId = await getUserIdFromSession(sessionId)
     } catch (e) {
-      return generatePolicyRespinse('Deny', event.methodArn)
+      return generatePolicyResponse('Deny', event.methodArn)
     }
   
-  return generatePolicyRespinse('Allow', event.methodArn, { userId })
+  return generatePolicyResponse('Allow', event.methodArn, { userId })
 }
