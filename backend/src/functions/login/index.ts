@@ -91,7 +91,7 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
     // Return the sessionId as a cookie
     try {
         const newCookie = cookie.serialize("Authorization", session.sessionId, {
-            maxAge: 5 * 24 * 60 * 60, //days * hours * minutes * seconds, 5 days
+            maxAge: parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "0"),
             secure: true,
             httpOnly: true
         })

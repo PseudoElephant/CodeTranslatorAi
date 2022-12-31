@@ -27,6 +27,8 @@ functions:
             identitySource: method.request.header.Authorization
   login:
     handler: src/functions/login/index.handler
+    environment:
+      SESSION_LIFE_TIME_SECONDS: ${file(./config.production.json):SESSION_LIFE_TIME_SECONDS}
     events:
       - http:
           method: POST

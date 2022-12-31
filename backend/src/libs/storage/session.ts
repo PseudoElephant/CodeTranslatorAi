@@ -1,10 +1,9 @@
 import { Session } from "@prisma/client";
 import prisma from "./prisma"
 
-const createExpirationDate = (): Date => {
-    //TODO: Set better expiration time options, use seconds to generate new time, store expiration time in .env
+const createExpirationDate = (expirationTimeSeconds: number): Date => {
     let exprirationDate = new Date();
-    exprirationDate.setHours(exprirationDate.getHours() + 2);
+    exprirationDate.setSeconds(exprirationDate.getSeconds() + expirationTimeSeconds);
     return exprirationDate;
 }
 
@@ -22,7 +21,7 @@ export const getUserIdFromSession = async (sessionId: string): Promise<string> =
 }
 
 export const createNewSession = async (userId: string): Promise<Session> => {
-    let exprirationDate = createExpirationDate();
+    let exprirationDate = createExpirationDate(parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "0"));
 
     let session = await prisma.session.create({
         data: {
@@ -35,7 +34,7 @@ export const createNewSession = async (userId: string): Promise<Session> => {
 }
 
 export const updateUserSession = async (userId: string): Promise<string> => {
-    let exprirationDate = createExpirationDate();
+    let exprirationDate = createExpirationDate(parseInt(process.env.SESSION_LIFE_TIME_SECONDS || "0"));
 
     let session = await prisma.session.update({
         where: {
