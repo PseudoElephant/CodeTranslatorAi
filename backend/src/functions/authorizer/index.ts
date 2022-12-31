@@ -24,7 +24,7 @@ export async function handler (event: APIGatewayAuthorizerEvent, context: Contex
       principalId: 'user',
       policyDocument: policyDoc,
       context: {
-        userId: '8b3b7f66-dda2-462a-a7ca-3618fc7c9218', // TODO: Get user id from session
+        userId: '2681b6a8-35f5-4ec4-89e5-3acb8fe2a977', // TODO: Get user id from session
       }
     } as AuthResponse
 
