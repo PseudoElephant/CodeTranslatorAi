@@ -63,6 +63,13 @@ export const newNotFoundResponse = (message: string): APIGatewayProxyResult => {
     }
 }
 
+export const newStatusResponse = (code: number): APIGatewayProxyResult => {
+    return {
+        statusCode: code,
+        body: ""
+    }
+}
+
 export const newUnauthorizedResponse = (): APIGatewayProxyResult => {
     return {
         statusCode: 401,

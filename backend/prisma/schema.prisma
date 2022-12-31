@@ -25,27 +25,28 @@ model Package {
     name      String
     priceUsd     Float
     numTranslations Int
-    transactions Transaction[]
 }
 
 enum TransactionStatus {
     PENDING
     SUCCESS
     FAILED
+    EXPIRED
 }
 
 model Transaction {
     id        String      @id @default(uuid())
     createdAt DateTime @default(now())
-    stripeTransactionId String
-    package  Package  @relation(fields: [packageId], references: [id])
-    packageId Int
+    stripeTransactionId String @unique
     user      User     @relation(fields: [userId], references: [id])
     userId    String
+    total     Float
+    discount  Float @default(0)
+    tax       Float @default(0)
+    currency  String
     status    TransactionStatus @default(PENDING)
 
     @@index([userId], name: "userId")
-    @@index([packageId], name: "packageId")
 }
 
 model Session {

@@ -10,3 +10,16 @@ export const getPackageFromId = async (packageId: number): Promise<Package> => {
 
     return packageItem
 }
+
+export const getPackageCreditsFromStripeId = async (stripeId: string): Promise<number> => {
+    const pck = await prisma.package.findUniqueOrThrow({
+        where: {
+            stripeID: stripeId
+        },
+        select: {
+            numTranslations: true
+        }
+    })
+
+    return pck.numTranslations
+}
