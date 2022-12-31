@@ -1,8 +1,7 @@
 // src/functions/cars/index.ts
-import { newInternalServerErrorResponse, newInvalidRequestResponse, newNotFoundResponse, newSuccessResponse } from '@/apigateway/response';
+import { newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@/apigateway/response';
 import { deleteUserSession } from '@/storage/session';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import * as cookie from 'cookie';
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const userId = _event.requestContext.authorizer?.userId;
