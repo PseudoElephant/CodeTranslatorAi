@@ -65,3 +65,13 @@ export const getSessionFromUserId = async (userId: string): Promise<Session> => 
 
     return session
 }
+
+export const getSessionFromSessionId = async (sessionId: string): Promise<Session> => {
+    const session = await prisma.session.findUniqueOrThrow({
+        where: {
+            sessionId: sessionId
+        }
+    })
+
+    return session
+}
