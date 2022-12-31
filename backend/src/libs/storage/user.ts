@@ -38,3 +38,26 @@ export const incrementUserTranslations = async (userId: string, incrementValue: 
         }
     })
 }
+
+export const getUserPasswordAndIdFromEmail = async (email: string): Promise<{ id: string, password: string }> => {
+    const user = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: email
+        }, 
+        select: {
+            password: true,
+            id: true
+        }
+    });
+
+    return user;
+}
+
+export const createNewUser = async (email: string, hashedPassword: string) => {
+    await prisma.user.create({
+        data: {
+            email: email,
+            password: hashedPassword
+        }
+    });
+}

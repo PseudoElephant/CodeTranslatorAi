@@ -16,6 +16,8 @@ functions:
     handler: src/functions/authorizer/index.handler
   checkout-session:
     handler: src/functions/checkout-session/index.handler
+    environment:
+      DOMAIN: 'https://localhost:3000'
     events:
       - http:
           method: POST
@@ -25,6 +27,8 @@ functions:
             identitySource: method.request.header.Authorization
   login:
     handler: src/functions/login/index.handler
+    environment:
+      SESSION_LIFE_TIME_SECONDS: 345600 # 4 * 24 * 60 * 60 - 4 days 
     events:
       - http:
           method: POST
