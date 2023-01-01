@@ -8,6 +8,9 @@ provider:
   region: us-east-1
   tracing:
       apiGateway: true
+      # only include the Prisma binary required on AWS Lambda while packaging
+package:
+  individually: true
 layers:
   TopicPrismaAwsNodeModules:
     path: lambda-layers-node_modules
@@ -17,9 +20,9 @@ layers:
     path: lambda-layers-prisma-client
 functions:
   authorizer:
-    handler: src/functions/authorizer/index.handler
+    handler: authorizer/index.handler
   checkout-session:
-    handler: src/functions/checkout-session/index.handler
+    handler: checkout-session/index.handler
     environment:
       DOMAIN: 'https://localhost:3000'
       DATABASE_URL: ${env:PRISMA_DATABASE_URL}
@@ -33,7 +36,7 @@ functions:
             resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
   login:
-    handler: src/functions/login/index.handler
+    handler: login/index.handler
     environment:
       DATABASE_URL: ${env:PRISMA_DATABASE_URL}
       SESSION_LIFE_TIME_SECONDS: 345600 # 4 * 24 * 60 * 60 - 4 days 
@@ -49,7 +52,7 @@ functions:
           method: POST
           path: login/
   logout:
-    handler: src/functions/logout/index.handler
+    handler: logout/index.handler
     events:
       - http:
           method: POST
@@ -58,7 +61,7 @@ functions:
             name: authorizer
             identitySource: method.request.header.Authorization
   sign-up:
-    handler: src/functions/sign-up/index.handler
+    handler: sign-up/index.handler
     events:
       - http:
           method: POST
@@ -66,7 +69,7 @@ functions:
     environment:
       DATABASE_URL: ${env:PRISMA_DATABASE_URL}
   stripe-webhook-handler:
-    handler: src/functions/stripe-webhook-handler/index.handler
+    handler: stripe-webhook-handler/index.handler
     environment:
       STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_KEY: ${env:STRIPE_WEBHOOK_KEY}
@@ -75,7 +78,7 @@ functions:
           method: POST
           path: webhook-stripe/
   translate:
-    handler: src/functions/translate/index.handler
+    handler: translate/index.handler
     timeout: 20
     environment:
       DATABASE_URL: ${env:PRISMA_DATABASE_URL}
@@ -102,6 +105,4 @@ resources:
         RestApiId:
           Ref: 'ApiGatewayRestApi'
 
-# only include the Prisma binary required on AWS Lambda while packaging
-package:
-  individually: true
+
