@@ -22,7 +22,7 @@ functions:
     handler: src/functions/checkout-session/index.handler
     environment:
       DOMAIN: 'https://localhost:3000'
-      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
+      DATABASE_URL: ${env:DATABASE_URL}
     events:
       - http:
           method: POST
@@ -35,7 +35,7 @@ functions:
   login:
     handler: src/functions/login/index.handler
     environment:
-      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
+      DATABASE_URL: ${env:DATABASE_URL}
       SESSION_LIFE_TIME_SECONDS: 345600 # 4 * 24 * 60 * 60 - 4 days 
       PRISMA_BINARY_TARGET: rhel-openssl-1.0.x
       NODE_ENV: production
@@ -64,12 +64,12 @@ functions:
           method: POST
           path: sign-up/
     environment:
-      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
+      DATABASE_URL: ${env:DATABASE_URL}
   stripe-webhook-handler:
     handler: src/functions/stripe-webhook-handler/index.handler
     environment:
-      STRIPE_SECRET_KEY: ${file(./config.production.json):STRIPE_SECRET_KEY}
-      STRIPE_WEBHOOK_KEY: ${file(./config.production.json):STRIPE_WEBHOOK_KEY}
+      STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_KEY: ${env:STRIPE_WEBHOOK_KEY}
     events:
       - http: 
           method: POST
@@ -78,8 +78,8 @@ functions:
     handler: src/functions/translate/index.handler
     timeout: 20
     environment:
-      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
-      OPENAI_API_KEY: ${file(./config.production.json):OPENAI_API_KEY}
+      DATABASE_URL: ${env:DATABASE_URL}
+      OPENAI_API_KEY: ${env:OPENAI_API_KEY}
     events:
       - http: 
           method: POST

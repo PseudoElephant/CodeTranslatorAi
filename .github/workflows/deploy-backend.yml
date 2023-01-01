@@ -176,9 +176,7 @@ jobs:
 
       - name: Deploy lambdas and layers
         run: |
-            ls 
-            cd build
-            serverless deploy --verbose
+            cd build/functions && serverless deploy --verbose
         env:
           SERVICE_ROOT: ./build/functions
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_CI }}
