@@ -15,14 +15,13 @@ function prepare_prisma_client_lambda_layer() {
   rm -rf lambda-layers-prisma-client/nodejs/node_modules/@prisma/cli
 
   echo "Compressing ..."
-  pushd lambda-layers-prisma-client && tar -zcf /tmp/nodejs.tar.gz . && mv /tmp/nodejs.tar.gz ./nodejs.tar.gz
+  pushd lambda-layers-prisma-client && zip -r /tmp/lambda-layers-prisma-client.zip . && mv /tmp/lambda-layers-prisma-client.zip ./lambda-layers-prisma-client.zip
 
   echo "Remove unzipped files ..."
   rm -rf nodejs
 
-  echo "Stats:"
-  ls -lh nodejs.tar.gz
-
   popd
+
+  mv lambda-layers-prisma-client ./build/layers/lambda-layers-prisma-client
 }
 prepare_prisma_client_lambda_layer

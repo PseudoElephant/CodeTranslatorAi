@@ -3,7 +3,7 @@ import { sendEmail } from '@libs/email/client';
 import { getPackageCreditsFromStripeId } from '@libs/storage/package';
 import { createTransaction, updatePaymentStatus } from '@libs/storage/transaction';
 import { incrementUserTranslations } from '@libs/storage/user';
-import { Transaction } from '@prisma/client';
+import { Transaction, TransactionStatus } from '@prisma/client';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import Stripe from 'stripe'
 import { stripePaymentStatusToTransactionStatus } from './session';
@@ -59,7 +59,7 @@ const handleCheckoutSessionCompleted = async (event: Stripe.Event) => {
     const transaction = await handleCreateTransaction(userId, session)
 
     // if paid fullfill request
-    if (transaction.status === "SUCCESS") {
+    if (transaction.status === TransactionStatus.SUCCESS) {
         await applyCreditsToUser(userId, session)
     }
 }
@@ -68,7 +68,7 @@ const handleAsyncPaymentSucceeded = async (event: Stripe.Event) => {
     const session = event.data.object as Stripe.Checkout.Session
 
     // update payment status on transaction
-    await updatePaymentStatus(session.id, "SUCCESS")
+    await updatePaymentStatus(session.id, TransactionStatus.SUCCESS)
 
     // fullfill transaction
     await applyCreditsToUser(session.client_reference_id || "", session)
@@ -77,7 +77,7 @@ const handleAsyncPaymentSucceeded = async (event: Stripe.Event) => {
 const handleAsyncPaymentFailed = async (event: Stripe.Event) => {
     const session = event.data.object as Stripe.Checkout.Session
     // update payment status on transaction
-    await updatePaymentStatus(session.id, "FAILED")
+    await updatePaymentStatus(session.id, TransactionStatus.FAILED)
 
     // send email about failed payment
     await sendEmail(session.client_reference_id || "", "FAILED_PAYMENT")
@@ -87,7 +87,7 @@ const handleCheckoutExpired = async (event: Stripe.Event) => {
     const session = event.data.object as Stripe.Checkout.Session
 
     // update payment status on transaction
-    await updatePaymentStatus(session.id, "EXPIRED")
+    await updatePaymentStatus(session.id, TransactionStatus.EXPIRED)
 }
 
 const parseWebhook = (_event: APIGatewayProxyEvent) : Stripe.Event => {
@@ -121,6 +121,7 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
 
         return newStatusResponse(200)
     } catch (err) {
+        console.error(err)
         return newInternalServerErrorResponse()
     }
 };

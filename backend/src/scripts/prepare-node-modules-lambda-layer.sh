@@ -10,14 +10,13 @@ function prepare_node_modules_lambda_layer() {
   cp -r node_modules lambda-layers-node_modules/nodejs
 
   echo "Compressing ..."
-  pushd lambda-layers-node_modules && tar -zcf /tmp/nodejs.tar.gz . && mv /tmp/nodejs.tar.gz ./nodejs.tar.gz
+  pushd lambda-layers-node_modules && zip -r /tmp/lambda-layers-node_modules.zip . && mv /tmp/lambda-layers-node_modules.zip ./lambda-layers-node_modules.zip
 
   echo "Remove unzipped files ..."
   rm -rf nodejs
 
-  echo "Stats:"
-  ls -lh nodejs.tar.gz
-
   popd
+
+  mv lambda-layers-node_modules build/layers/lambda-layers-node_modules
 }
 prepare_node_modules_lambda_layer

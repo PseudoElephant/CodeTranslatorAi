@@ -71,7 +71,6 @@ const processRequest = async (userId: string,  packageItem: Package): Promise<AP
             setup_future_usage: "on_session"
         },
         locale: "auto",
-        automatic_tax: { enabled: true },
         success_url: `${DOMAIN}/success`,
         cancel_url: `${DOMAIN}/cancel`,
     });

@@ -11,6 +11,7 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
     try {
         await deleteUserSession(userId);
     } catch (err) {
+        console.log(err);
         return newInternalServerErrorResponse();
     }
 

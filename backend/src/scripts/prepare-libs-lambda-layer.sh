@@ -10,18 +10,14 @@ function prepare_libs_lambda_layer() {
   echo "Prepare libs lambda layer ..."
   cp -r build/@libs lambda-layers-libs/nodejs/node_modules
 
-  echo "Compressing ..."
-  pushd lambda-layers-libs && tar -zcf /tmp/nodejs.tar.gz . && mv /tmp/nodejs.tar.gz ./nodejs.tar.gz
+  echo "Compressing (zip) ..."
+  pushd lambda-layers-libs && zip -r /tmp/lambda-layers-libs.zip . && mv /tmp/lambda-layers-libs.zip ./lambda-layers-libs.zip
 
   echo "Remove unzipped files ..."
   rm -rf nodejs
-
-  echo "Stats:"
-  ls -lh nodejs.tar.gz
-
+  
   popd
 
-  echo "Directory:"
-  ls 
+  mv lambda-layers-libs build/layers/lambda-layers-libs
 }
 prepare_libs_lambda_layer
