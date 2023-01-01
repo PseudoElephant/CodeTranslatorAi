@@ -142,22 +142,22 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: build-lambdas
-          path: ./build/functions
+          path: backend/build/functions
 
       - uses: actions/download-artifact@v3
         with:
           name: lambda-layers-node_modules
-          path: ./build/functions/lambda-layers-node_modules
+          path: backend/build/functions/lambda-layers-node_modules
 
       - uses: actions/download-artifact@v3
         with:
           name: lambda-layers-libs
-          path: ./build/functions/lambda-layers-libs
+          path: backend/build/functions/lambda-layers-libs
 
       - uses: actions/download-artifact@v3
         with:
           name: lambda-layers-prisma-client
-          path: ./build/functions/lambda-layers-prisma-client
+          path: backend/build/functions/lambda-layers-prisma-client
 
       - name: Unzip layers
         run: |
