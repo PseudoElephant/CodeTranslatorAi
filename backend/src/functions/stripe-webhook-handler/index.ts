@@ -1,8 +1,8 @@
-import { newInternalServerErrorResponse, newStatusResponse } from '@/apigateway/response';
-import { sendEmail } from '@/email/client';
-import { getPackageCreditsFromStripeId } from '@/storage/package';
-import { createTransaction, updatePaymentStatus } from '@/storage/transaction';
-import { incrementUserTranslations } from '@/storage/user';
+import { newInternalServerErrorResponse, newStatusResponse } from '@libs/apigateway/response';
+import { sendEmail } from '@libs/email/client';
+import { getPackageCreditsFromStripeId } from '@libs/storage/package';
+import { createTransaction, updatePaymentStatus } from '@libs/storage/transaction';
+import { incrementUserTranslations } from '@libs/storage/user';
 import { Transaction } from '@prisma/client';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import Stripe from 'stripe'
@@ -117,7 +117,6 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
                 await handleCheckoutExpired(stripeEvent)
             default:
                 throw new Error(`Unhandled event type: ${eventType}`)
-                break;
         }
 
         return newStatusResponse(200)

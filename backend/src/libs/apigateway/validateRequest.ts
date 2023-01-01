@@ -1,5 +1,5 @@
 import { AnyZodObject, z, ZodError } from "zod";
-import { errorMap } from '@/error';
+import { errorMap } from '@libs/error';
 import { APIGatewayProxyResult } from "aws-lambda";
 import { newInvalidRequestResponse, newInternalServerErrorResponse } from "./response";
 

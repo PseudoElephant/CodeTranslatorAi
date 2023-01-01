@@ -1,12 +1,12 @@
 // src/functions/cars/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { Package, PrismaClient } from '@prisma/client'
-import { getPackageFromId } from '@/storage/package';
+import { Package } from '@prisma/client'
+import { getPackageFromId } from '@libs/storage/package';
 import { CheckoutRequest } from './models';
-import { newInternalServerErrorResponse, newInvalidRequestResponse, newNotFoundResponse, newRedirectResponse } from '@/apigateway/response';
-import { errorMap } from '@/error';
+import { newInternalServerErrorResponse, newInvalidRequestResponse, newNotFoundResponse, newRedirectResponse } from '@libs/apigateway/response';
+import { errorMap } from '@libs/error';
 import { ZodError } from 'zod';
-import { isApiGatewayProxyResult } from '@/apigateway/guards';
+import { isApiGatewayProxyResult } from '@libs/apigateway/guards';
 import Stripe from 'stripe';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 

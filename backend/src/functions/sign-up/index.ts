@@ -1,10 +1,10 @@
-import { newConflictErrorResponse, newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@/apigateway/response';
-import { encrypt } from '@/crypt/validateHash';
-import { createNewUser } from '@/storage/user';
+import { newConflictErrorResponse, newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@libs/apigateway/response';
+import { encrypt } from '@libs/crypt/validateHash';
+import { createNewUser } from '@libs/storage/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ZodError } from 'zod';
-import { errorMap } from '@/error';
+import { errorMap } from '@libs/error';
 import { SignUpRequest } from './models';
 
 const validateRequest = async (body: string): Promise<[SignUpRequest | null, APIGatewayProxyResult | null]> => {

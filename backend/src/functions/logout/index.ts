@@ -1,6 +1,5 @@
-// src/functions/cars/index.ts
-import { newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@/apigateway/response';
-import { deleteUserSession } from '@/storage/session';
+import { newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@libs/apigateway/response';
+import { deleteUserSession } from '@libs/storage/session';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {

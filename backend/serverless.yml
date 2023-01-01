@@ -2,15 +2,19 @@ service: 'codetranslator-ai'
 plugins:
   - serverless-esbuild
   - serverless-offline
-package:
-   individually: true
 provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
   tracing:
       apiGateway: true
-
+layers:
+  TopicPrismaAwsNodeModules:
+    path: lambda-layers-node_modules
+  TopicPrismaAwsLibs:
+    path: lambda-layers-libs
+  TopicPrismaAwsPrismaClient:
+    path: lambda-layers-prisma-client
 functions:
   authorizer:
     handler: src/functions/authorizer/index.handler
@@ -18,6 +22,7 @@ functions:
     handler: src/functions/checkout-session/index.handler
     environment:
       DOMAIN: 'https://localhost:3000'
+      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
     events:
       - http:
           method: POST
@@ -27,12 +32,18 @@ functions:
             type: request
             resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
-
-            
   login:
     handler: src/functions/login/index.handler
     environment:
+      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
       SESSION_LIFE_TIME_SECONDS: 345600 # 4 * 24 * 60 * 60 - 4 days 
+      PRISMA_BINARY_TARGET: rhel-openssl-1.0.x
+      NODE_ENV: production
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
+
     events:
       - http:
           method: POST
@@ -52,6 +63,8 @@ functions:
       - http:
           method: POST
           path: sign-up/
+    environment:
+      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
   stripe-webhook-handler:
     handler: src/functions/stripe-webhook-handler/index.handler
     environment:
@@ -88,3 +101,7 @@ resources:
         ResponseType: DEFAULT_4XX
         RestApiId:
           Ref: 'ApiGatewayRestApi'
+
+# only include the Prisma binary required on AWS Lambda while packaging
+package:
+  individually: true

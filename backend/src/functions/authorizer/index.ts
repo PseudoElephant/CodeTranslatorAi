@@ -1,4 +1,4 @@
-import { getSessionFromSessionId, getUserIdFromSession } from '@/storage/session'
+import { getSessionFromSessionId, getUserIdFromSession } from '@libs/storage/session'
 import { APIGatewayAuthorizerResult, APIGatewayRequestAuthorizerEvent, AuthResponse, Context, PolicyDocument } from 'aws-lambda'
 
 // generatePolicy creates a policy document to allow this user on this API:

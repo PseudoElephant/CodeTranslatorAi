@@ -1,13 +1,13 @@
-import { newInternalServerErrorResponse, newSuccessResponse, newUnauthorizedResponse } from '@/apigateway/response';
+import { newInternalServerErrorResponse, newSuccessResponse, newUnauthorizedResponse } from '@libs/apigateway/response';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { LoginRequest } from './models';
-import { getUserPasswordAndIdFromEmail } from '@/storage/user';
+import { getUserPasswordAndIdFromEmail } from '@libs/storage/user';
 import {  PrismaClientKnownRequestError } from '@prisma/client/runtime';
-import { validateHash } from '@/crypt/validateHash';
-import { createNewSession, deleteUserSession, getSessionFromUserId } from '@/storage/session';
+import { validateHash } from '@libs/crypt/validateHash';
+import { createNewSession, deleteUserSession, getSessionFromUserId } from '@libs/storage/session';
 import { Session } from '@prisma/client';
-import { validateRequest } from '@/apigateway/validateRequest';
-import { isApiGatewayProxyResult } from '@/apigateway/guards';
+import { validateRequest } from '@libs/apigateway/validateRequest';
+import { isApiGatewayProxyResult } from '@libs/apigateway/guards';
 
 const getUserIdAndHashedPassword = async (email: string): Promise<{ id: string, password: string } | APIGatewayProxyResult> => {
     try {
@@ -19,6 +19,7 @@ const getUserIdAndHashedPassword = async (email: string): Promise<{ id: string, 
             }
         } 
 
+        console.log(err);
         return newInternalServerErrorResponse();
     }
 }
@@ -30,6 +31,7 @@ const validatePassword = async (password: string, hashedPassword: string): Promi
             return newUnauthorizedResponse();
         }
     } catch (err) {
+        console.log(err);
         return newInternalServerErrorResponse();
     }
 
@@ -42,10 +44,12 @@ const createSession = async (userId: string): Promise<Session | APIGatewayProxyR
         session = await getSessionFromUserId(userId);
     } catch(err) {    
         if (!(err instanceof PrismaClientKnownRequestError)) {
+            console.log(err);
             return newInternalServerErrorResponse();
         } 
 
         if (err.code !== "P2025") { // If it does not find the session
+            console.log(err);
             return newInternalServerErrorResponse();
         }
 
@@ -60,6 +64,7 @@ const createSession = async (userId: string): Promise<Session | APIGatewayProxyR
         
         newSession = await createNewSession(userId);
     } catch (err) {
+        console.log(err);
         return newInternalServerErrorResponse();
     }
 
@@ -90,6 +95,7 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
     try {
         return newSuccessResponse({ accessToken: sessionOutput.sessionId })
     } catch (err) {
+        console.log(err);
         return newInternalServerErrorResponse();
     }
 };
