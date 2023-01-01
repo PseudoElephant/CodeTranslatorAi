@@ -184,3 +184,6 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           PRISMA_DATABASE_URL: ${{ secrets.PRISMA_DATABASE_URL }}
           PRISMA_BINARY_TARGET: rhel-openssl-1.0.x
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_KEY: ${{ secrets.STRIPE_WEBHOOK_KEY }}

@@ -1,7 +1,7 @@
 service: 'codetranslator-ai'
 plugins:
-  - serverless-esbuild
-  - serverless-offline
+  # - serverless-esbuild
+  # - serverless-offline
 provider:
   name: aws
   runtime: nodejs18.x
@@ -22,7 +22,7 @@ functions:
     handler: src/functions/checkout-session/index.handler
     environment:
       DOMAIN: 'https://localhost:3000'
-      DATABASE_URL: ${env:DATABASE_URL}
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
     events:
       - http:
           method: POST
@@ -35,7 +35,7 @@ functions:
   login:
     handler: src/functions/login/index.handler
     environment:
-      DATABASE_URL: ${env:DATABASE_URL}
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
       SESSION_LIFE_TIME_SECONDS: 345600 # 4 * 24 * 60 * 60 - 4 days 
       PRISMA_BINARY_TARGET: rhel-openssl-1.0.x
       NODE_ENV: production
@@ -64,7 +64,7 @@ functions:
           method: POST
           path: sign-up/
     environment:
-      DATABASE_URL: ${env:DATABASE_URL}
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
   stripe-webhook-handler:
     handler: src/functions/stripe-webhook-handler/index.handler
     environment:
@@ -78,7 +78,7 @@ functions:
     handler: src/functions/translate/index.handler
     timeout: 20
     environment:
-      DATABASE_URL: ${env:DATABASE_URL}
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
       OPENAI_API_KEY: ${env:OPENAI_API_KEY}
     events:
       - http: 
