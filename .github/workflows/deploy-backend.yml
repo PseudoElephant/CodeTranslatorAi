@@ -115,10 +115,10 @@ jobs:
       - name: Build lambdas
         run: npm run build
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: build-lambdas
-          path: ./build/functions
+          path: backend/build/functions
 
   deploy-lambdas:
     name: Deploy lambdas
