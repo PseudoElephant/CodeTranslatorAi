@@ -15,13 +15,6 @@ jobs:
     name: Build node_modules layer
     runs-on: ubuntu-22.04
     steps:
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        id: cache-npm-prod
-        with:
-          path: backend/node_modules
-          key: node-modules-prod-${{ runner.os }}-${{ hashFiles('package.json') }}
-
       - name: Check out repository
         uses: actions/checkout@v3
 
@@ -32,7 +25,6 @@ jobs:
 
       # Only install PROD packages i.e. no `@types/*` packages or dev-related packages
       - name: Install PROD packages
-        if: ${{ steps.cache-npm-prod.outputs.cache-hit != 'true' }}
         run: npm install --omit=dev
 
       - name: Prepare lambda layer
@@ -48,13 +40,6 @@ jobs:
     name: Build. @prisma/client layer
     runs-on: ubuntu-22.04
     steps:
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        id: prisma-schema
-        with:
-          path: backend/node_modules
-          key: prisma-schema-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}
-
       - name: Check out repository
         uses: actions/checkout@v3
 
@@ -64,7 +49,6 @@ jobs:
           node-version: 18.x
 
       - name: Install ALL packages
-        if: ${{ steps.prisma-schema.outputs.cache-hit != 'true' }}
         run: npm ci # clean install
 
       # Generate Prisma Client and binary that can run in a lambda environment
@@ -84,13 +68,6 @@ jobs:
     name: Build. @libs layer
     runs-on: ubuntu-22.04
     steps:
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        id: cache-npm-all
-        with:
-          path: backend/node_modules
-          key: node-modules-all-${{ runner.os }}-${{ hashFiles('package.json') }}
-
       - name: Check out repository
         uses: actions/checkout@v3
 
@@ -100,7 +77,6 @@ jobs:
           node-version: 18.x
 
       - name: Install ALL packages
-        if: ${{ steps.cache-npm-all.outputs.cache-hit != 'true' }}
         run: npm ci
 
       - name: Prepare prisma client
@@ -122,13 +98,6 @@ jobs:
     name: Build lambdas
     runs-on: ubuntu-22.04
     steps:
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        id: cache-npm-all
-        with:
-          path: backend/node_modules
-          key: node-modules-all-${{ runner.os }}-${{ hashFiles('package.json') }}
-
       - name: Check out repository
         uses: actions/checkout@v3
 
@@ -138,7 +107,6 @@ jobs:
           node-version: 18.x
 
       - name: Install ALL packages
-        if: ${{ steps.cache-npm-all.outputs.cache-hit != 'true' }}
         run: npm ci
 
       - name: Prepare prisma client

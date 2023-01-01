@@ -11,6 +11,8 @@ provider:
       # only include the Prisma binary required on AWS Lambda while packaging
 package:
   individually: true
+  exclude:
+    - "**/*"  # quotes(") are needed
 layers:
   TopicPrismaAwsNodeModules:
     path: lambda-layers-node_modules
@@ -21,11 +23,23 @@ layers:
 functions:
   authorizer:
     handler: authorizer/index.handler
+    environment:
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
+    package:
+      include:
+        - authorizer/**
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
   checkout-session:
     handler: checkout-session/index.handler
     environment:
       DOMAIN: 'https://localhost:3000'
       DATABASE_URL: ${env:PRISMA_DATABASE_URL}
+    package:
+      include:
+        - checkout-session/**
     events:
       - http:
           method: POST
@@ -35,6 +49,10 @@ functions:
             type: request
             resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
   login:
     handler: login/index.handler
     environment:
@@ -42,11 +60,13 @@ functions:
       SESSION_LIFE_TIME_SECONDS: 345600 # 4 * 24 * 60 * 60 - 4 days 
       PRISMA_BINARY_TARGET: rhel-openssl-1.0.x
       NODE_ENV: production
+    package:
+      include:
+        - login/**
     layers:
       - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
       - { Ref: TopicPrismaAwsLibsLambdaLayer }
       - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
-
     events:
       - http:
           method: POST
@@ -60,6 +80,13 @@ functions:
           authorizer: 
             name: authorizer
             identitySource: method.request.header.Authorization
+    package:
+      include:
+        - logout/**
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
   sign-up:
     handler: sign-up/index.handler
     events:
@@ -68,11 +95,24 @@ functions:
           path: sign-up/
     environment:
       DATABASE_URL: ${env:PRISMA_DATABASE_URL}
+    package:
+      include:
+        - sign-up/**
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
   stripe-webhook-handler:
     handler: stripe-webhook-handler/index.handler
     environment:
       STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_KEY: ${env:STRIPE_WEBHOOK_KEY}
+    include:
+      - stripe-webhook-handler/**
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
     events:
       - http: 
           method: POST
@@ -83,6 +123,12 @@ functions:
     environment:
       DATABASE_URL: ${env:PRISMA_DATABASE_URL}
       OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    include:
+      - translate/**
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
     events:
       - http: 
           method: POST
@@ -92,7 +138,6 @@ functions:
             type: request
             resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
-	
 resources:
   Resources:
     GatewayResponseDefault4XX:
@@ -104,5 +149,3 @@ resources:
         ResponseType: DEFAULT_4XX
         RestApiId:
           Ref: 'ApiGatewayRestApi'
-
-
