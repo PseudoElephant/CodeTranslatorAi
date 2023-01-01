@@ -47,6 +47,7 @@ functions:
       - http:
           method: POST
           path: checkout-session/
+          cors: true
           authorizer:
             name: authorizer
             type: request
@@ -69,6 +70,7 @@ functions:
       - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
     events:
       - http:
+          cors: true
           method: POST
           path: login/
     package:
@@ -77,6 +79,7 @@ functions:
     handler: logout/index.handler
     events:
       - http:
+          cors: true
           method: POST
           path: logout/
           authorizer: 
@@ -94,6 +97,7 @@ functions:
     handler: sign-up/index.handler
     events:
       - http:
+          cors: true
           method: POST
           path: sign-up/
     environment:
@@ -117,6 +121,7 @@ functions:
       - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
     events:
       - http: 
+          cors: true
           method: POST
           path: webhook-stripe/
     package:
@@ -135,6 +140,7 @@ functions:
       - http: 
           method: POST
           path: translate/
+          cors: true
           authorizer:
             name: authorizer
             type: request
@@ -151,5 +157,14 @@ resources:
           gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
           gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
         ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
         RestApiId:
           Ref: 'ApiGatewayRestApi'

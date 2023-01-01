@@ -3,26 +3,26 @@ rm -rf build
 mkdir -p build/layers
 
 echo "Transpiling functions ..."
-npm run build 2>&1 | tee build.log
+npm run build 
 
 echo "Preparing layers ..."
 
 # Prepare libs lambda layer
 echo "Preparing libs lambda layer ..."
-bash ./src/scripts/prepare-libs-lambda-layer.sh 2>&1 | tee build.log
+bash ./src/scripts/prepare-libs-lambda-layer.sh
 
 echo "Preparing node_modules ..."
 npm ci --omit=dev
-bash ./src/scripts/prepare-node-modules-lambda-layer.sh 2>&1 | tee build.log
+bash ./src/scripts/prepare-node-modules-lambda-layer.sh 
 
 # Prepare Prisma Client lambda layer
 echo "Preparing Prisma Client lambda layer ..."
 npm i   2>&1 | tee build.log
 npm run prisma:generate:prod 2>&1 | tee build.log
-bash ./src/scripts/prepare-prisma-client-lambda-layer.sh 2>&1 | tee build.log
+bash ./src/scripts/prepare-prisma-client-lambda-layer.sh
 
 mkdir -p build/src
-mv build/functions build/src/functions 2>&1 | tee build.log
+mv build/functions build/src/functions
 
 echo "Zipping ..."
 
@@ -74,13 +74,15 @@ if [ "$1" == "offline" ]; then
 
   echo "Starting serverless offline ..."
   sls offline --stage dev --aws-profile translator
+
 fi
-else
+
+if [ "$1" == "prod" ]; then
   echo "Deploying with serverless deploy ..."
   sls deploy --stage dev --verbose --aws-profile translator
 fi
 
 popd
 
-echo "Cleaning up ..."
-rm -rf build
+# echo "Cleaning up ..."
+# rm -rf build

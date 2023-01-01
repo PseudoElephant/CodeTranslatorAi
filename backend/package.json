@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "bash src/scripts/deploy-all.sh offline",
-    "deploy": "bash src/scripts/deploy-all.sh",
+    "deploy": "bash src/scripts/deploy-all.sh prod",
     "build": "tsc",
     "prisma:generate:prod": "PRISMA_BINARY_TARGET=rhel-openssl-1.0.x prisma generate"
   },

@@ -78,7 +78,6 @@ const processRequest = async (userId: string,  packageItem: Package): Promise<AP
     if (!session.url) {
         return newInternalServerErrorResponse()
     }
-
     
     return newRedirectResponse(session.url)
 

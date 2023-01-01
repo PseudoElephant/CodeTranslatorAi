@@ -30,12 +30,17 @@ const handleCreateTransaction = async (userId: string, session: Stripe.Checkout.
 /// TODO: handle error, and log to sentry or other error tracking service
 
 const calculateCredits = async (session: Stripe.Checkout.Session): Promise<number> => {
-    if (!session.line_items?.data || session.line_items.data.length === 0) return 0
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id)
+
+    if (!lineItems.data || lineItems.data.length === 0) return 0
 
     let totalCredits = 0;
 
-    for (const item of session.line_items.data) {
-        const credits = await getPackageCreditsFromStripeId(item.id)
+    
+    for (const item of lineItems.data) {
+        const priceId = item.price?.id || ""
+
+        const credits = await getPackageCreditsFromStripeId(priceId)
         totalCredits += credits * (item.quantity || 1)
     }
 
