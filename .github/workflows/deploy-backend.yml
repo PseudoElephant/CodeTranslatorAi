@@ -8,7 +8,7 @@ on:
 jobs:
   build-node_modules-lambda-layer:
     name: Build node_modules layer
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -32,7 +32,7 @@ jobs:
 
   build-prisma-client-lambda-layer:
     name: Build. @prisma/client layer
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -59,7 +59,7 @@ jobs:
 
   build-libs-lambda-layers:
     name: Build. @libs layer
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -88,7 +88,7 @@ jobs:
 
   build-lambdas:
     name: Build lambdas
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -121,7 +121,7 @@ jobs:
         build-libs-lambda-layers,
         build-lambdas,
       ]
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
