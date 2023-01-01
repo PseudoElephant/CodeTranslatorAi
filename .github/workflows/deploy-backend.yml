@@ -171,13 +171,16 @@ jobs:
       - name: Move serverless.yml
         run: mv serverless.yml ./build/functions/serverless.yml
 
+      - name: Install Serverless
+        run:  npm i -g serverless@3.x
+
       - name: Deploy lambdas and layers
-        uses: serverless/github-action@v3.1
-        with:
-          args: deploy --debug
+        run: |
+            ls 
+            cd build
+            serverless deploy --verbose
         env:
           SERVICE_ROOT: ./build/functions
-          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_CI }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_CI }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
