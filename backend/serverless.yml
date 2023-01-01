@@ -88,6 +88,8 @@ functions:
       - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
     package:
       artifact: src/functions/logout/logout.zip
+    environment:
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
   sign-up:
     handler: sign-up/index.handler
     events:
@@ -105,8 +107,10 @@ functions:
   stripe-webhook-handler:
     handler: stripe-webhook-handler/index.handler
     environment:
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
       STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_KEY: ${env:STRIPE_WEBHOOK_KEY}
+
     layers:
       - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
       - { Ref: TopicPrismaAwsLibsLambdaLayer }
