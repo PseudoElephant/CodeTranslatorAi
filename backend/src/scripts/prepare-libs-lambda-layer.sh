@@ -20,5 +20,8 @@ function prepare_libs_lambda_layer() {
   ls -lh nodejs.tar.gz
 
   popd
+
+  echo "Directory:"
+  ls 
 }
 prepare_libs_lambda_layer
