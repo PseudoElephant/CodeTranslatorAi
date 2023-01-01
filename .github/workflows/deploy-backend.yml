@@ -20,7 +20,7 @@ jobs:
         id: cache-npm-prod
         with:
           path: backend/node_modules
-          key: node-modules-prod-${{ runner.os }}-${{ hashFiles('backend/package.json') }}
+          key: node-modules-prod-${{ runner.os }}-${{ hashFiles('package.json') }}
 
       - name: Check out repository
         uses: actions/checkout@v3
@@ -50,10 +50,10 @@ jobs:
     steps:
       - name: Cache node_modules
         uses: actions/cache@v3
-        id: cache-npm-all
+        id: prisma-schema
         with:
           path: backend/node_modules
-          key: node-modules-all-${{ runner.os }}-${{ hashFiles('backend/package.json') }}
+          key: prisma-schema-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}
 
       - name: Check out repository
         uses: actions/checkout@v3
@@ -64,7 +64,7 @@ jobs:
           node-version: 18.x
 
       - name: Install ALL packages
-        if: ${{ steps.cache-npm-all.outputs.cache-hit != 'true' }}
+        if: ${{ steps.prisma-schema.outputs.cache-hit != 'true' }}
         run: npm ci # clean install
 
       # Generate Prisma Client and binary that can run in a lambda environment
@@ -89,7 +89,7 @@ jobs:
         id: cache-npm-all
         with:
           path: backend/node_modules
-          key: node-modules-all-${{ runner.os }}-${{ hashFiles('backend/package.json') }}
+          key: node-modules-all-${{ runner.os }}-${{ hashFiles('package.json') }}
 
       - name: Check out repository
         uses: actions/checkout@v3
@@ -127,7 +127,7 @@ jobs:
         id: cache-npm-all
         with:
           path: backend/node_modules
-          key: node-modules-all-${{ runner.os }}-${{ hashFiles('backend/package.json') }}
+          key: node-modules-all-${{ runner.os }}-${{ hashFiles('package.json') }}
 
       - name: Check out repository
         uses: actions/checkout@v3
