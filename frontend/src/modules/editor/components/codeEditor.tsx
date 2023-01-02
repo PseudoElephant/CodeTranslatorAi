@@ -4,6 +4,7 @@ const MonacoEditor = dynamic(import("@monaco-editor/react"), { ssr: false });
 
 import FontFaceObserver from 'fontfaceobserver';
 import { editor } from "monaco-editor";
+import { Monaco } from "@monaco-editor/react";
 
 interface Props {
     value: string;

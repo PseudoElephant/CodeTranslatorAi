@@ -1,5 +1,7 @@
 import { useMonaco } from "@monaco-editor/react";
 import React, { useCallback, useEffect, useState } from "react";
+import ActionButton from "../../common/components/action-button";
+import Button from "../../common/components/button";
 import Dropdown from "../../common/components/dropdown";
 import CodeEditor from "./components/codeEditor";
 
@@ -34,6 +36,33 @@ const Languages = [
 ];
 
 const Translator = () => {
+
+  const translateCode = async () => {
+      try {
+      const response = await fetch("https://uc5x9rnr0m.execute-api.us-east-1.amazonaws.com/dev/translate", {
+        method: "POST",
+        headers: {
+          "Authorization": ""
+        },
+        body: JSON.stringify({
+          code: codeFrom,
+          languageFrom: fromLanguage,
+          languageTo: toLanguage,
+        }),
+      });
+      const data = await response.json();
+
+      if (response.status !== 200) {
+          throw new Error(data.message || "Something went wrong!");
+      }
+
+      console.log(data);
+      setCodeTo(data.code);
+      }
+      catch (e) {
+          console.error(e);
+      }
+  }
 
   const [codeFrom, setCodeFrom] = useState<string>("# Hello, World!\n");
   const handleChangeFrom = useCallback((newCodeFrom: string) => {
@@ -79,6 +108,11 @@ const Translator = () => {
             value={toLanguage}
             onValueChange={handleToLanguageChange}
           />
+        </div>
+        <div className="ml-auto flex items-center">
+          <ActionButton onClick={translateCode}>
+            Translate
+          </ActionButton>
         </div>
       </div>
       <div className="w-full h-px bg-neutral-6" />
