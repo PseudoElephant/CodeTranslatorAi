@@ -1,9 +1,9 @@
-import { useMonaco } from "@monaco-editor/react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import ActionButton from "../../common/components/action-button";
-import Button from "../../common/components/button";
 import Dropdown from "../../common/components/dropdown";
 import CodeEditor from "./components/codeEditor";
+
+import { translateCode as translateCodeAPI } from "./api/translateCode";
 
 // export hooks
 export * from "./hooks/use-monacothemes";
@@ -36,28 +36,18 @@ const Languages = [
 ];
 
 const Translator = () => {
+  const [loadingResult, setLoadingResult] = useState<boolean>(false);
 
   const translateCode = async () => {
       try {
-      const response = await fetch("https://uc5x9rnr0m.execute-api.us-east-1.amazonaws.com/dev/translate", {
-        method: "POST",
-        headers: {
-          "Authorization": ""
-        },
-        body: JSON.stringify({
-          code: codeFrom,
-          languageFrom: fromLanguage,
-          languageTo: toLanguage,
-        }),
-      });
-      const data = await response.json();
 
-      if (response.status !== 200) {
-          throw new Error(data.message || "Something went wrong!");
-      }
+        setLoadingResult(true);
 
-      console.log(data);
-      setCodeTo(data.code);
+        const data = await translateCodeAPI(codeFrom, fromLanguage, toLanguage);
+
+        setLoadingResult(false);
+
+        setCodeTo(data.code);
       }
       catch (e) {
           console.error(e);
@@ -89,7 +79,7 @@ const Translator = () => {
   return (
     <div>
       <div className="grid grid-cols-12 bg-neutral-2 rounded-md p-4">
-        <div className="flex items-center gap-2 col-span-5">
+        <div className="flex items-center gap-2 col-span-4">
           <p className="text-sm font-bold">From</p>
           <Dropdown
             placeholder="Select a language..."
@@ -99,7 +89,7 @@ const Translator = () => {
             onValueChange={handleFromLanguageChange}
           />
         </div>
-        <div className="flex items-center gap-2 col-span-5 col-start-7">
+        <div className="flex items-center gap-2 col-span-4 col-start-7">
           <p className="text-sm font-bold">To</p>
           <Dropdown
             placeholder="Select a language..."
@@ -109,8 +99,8 @@ const Translator = () => {
             onValueChange={handleToLanguageChange}
           />
         </div>
-        <div className="ml-auto flex items-center">
-          <ActionButton onClick={translateCode}>
+        <div className="col-start-12 col-span-2 min-w-fit flex items-center">
+          <ActionButton onClick={translateCode} loading={ loadingResult }>
             Translate
           </ActionButton>
         </div>
@@ -120,9 +110,10 @@ const Translator = () => {
         <div className="w-full bg-neutral-3 rounded-md">
           <CodeEditor value={codeFrom} onValueChange={handleChangeFrom} language={fromLanguage} />
         </div>
+        
         <div className="w-full bg-neutral-3 rounded-md">
-          <CodeEditor value={codeTo} onValueChange={handleChangeTo} language={toLanguage} options={{ readonly: true }} />
-        </div>
+          <CodeEditor value={codeTo} onValueChange={handleChangeTo} language={toLanguage} options={{ readonly: true }} loading={ loadingResult } />
+        </div>  
       </div>
     </div>
   );
