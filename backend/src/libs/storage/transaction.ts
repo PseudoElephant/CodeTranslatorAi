@@ -4,7 +4,15 @@ import prisma from "./prisma";
 
 export const createTransaction = async (req: Omit<Transaction, "id" | "createdAt">): Promise<Transaction> => {
     const transaction = await prisma.transaction.create({
-        data: req
+        data: { 
+            ...req,
+            userId: undefined,
+            user: {
+                connect: {
+                    id: req.userId
+                }
+            }
+        },
     })
 
     return transaction

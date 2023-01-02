@@ -1,9 +1,9 @@
-import { newInternalServerErrorResponse, newStatusResponse } from '@/apigateway/response';
-import { sendEmail } from '@/email/client';
-import { getPackageCreditsFromStripeId } from '@/storage/package';
-import { createTransaction, updatePaymentStatus } from '@/storage/transaction';
-import { incrementUserTranslations } from '@/storage/user';
-import { Transaction } from '@prisma/client';
+import { newInternalServerErrorResponse, newStatusResponse } from '@libs/apigateway/response';
+import { sendEmail } from '@libs/email/client';
+import { getPackageCreditsFromStripeId } from '@libs/storage/package';
+import { createTransaction, updatePaymentStatus } from '@libs/storage/transaction';
+import { incrementUserTranslations } from '@libs/storage/user';
+import { Transaction, TransactionStatus } from '@prisma/client';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import Stripe from 'stripe'
 import { stripePaymentStatusToTransactionStatus } from './session';
@@ -30,12 +30,17 @@ const handleCreateTransaction = async (userId: string, session: Stripe.Checkout.
 /// TODO: handle error, and log to sentry or other error tracking service
 
 const calculateCredits = async (session: Stripe.Checkout.Session): Promise<number> => {
-    if (!session.line_items?.data || session.line_items.data.length === 0) return 0
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id)
+
+    if (!lineItems.data || lineItems.data.length === 0) return 0
 
     let totalCredits = 0;
 
-    for (const item of session.line_items.data) {
-        const credits = await getPackageCreditsFromStripeId(item.id)
+    
+    for (const item of lineItems.data) {
+        const priceId = item.price?.id || ""
+
+        const credits = await getPackageCreditsFromStripeId(priceId)
         totalCredits += credits * (item.quantity || 1)
     }
 
@@ -59,7 +64,7 @@ const handleCheckoutSessionCompleted = async (event: Stripe.Event) => {
     const transaction = await handleCreateTransaction(userId, session)
 
     // if paid fullfill request
-    if (transaction.status === "SUCCESS") {
+    if (transaction.status === TransactionStatus.SUCCESS) {
         await applyCreditsToUser(userId, session)
     }
 }
@@ -68,7 +73,7 @@ const handleAsyncPaymentSucceeded = async (event: Stripe.Event) => {
     const session = event.data.object as Stripe.Checkout.Session
 
     // update payment status on transaction
-    await updatePaymentStatus(session.id, "SUCCESS")
+    await updatePaymentStatus(session.id, TransactionStatus.SUCCESS)
 
     // fullfill transaction
     await applyCreditsToUser(session.client_reference_id || "", session)
@@ -77,7 +82,7 @@ const handleAsyncPaymentSucceeded = async (event: Stripe.Event) => {
 const handleAsyncPaymentFailed = async (event: Stripe.Event) => {
     const session = event.data.object as Stripe.Checkout.Session
     // update payment status on transaction
-    await updatePaymentStatus(session.id, "FAILED")
+    await updatePaymentStatus(session.id, TransactionStatus.FAILED)
 
     // send email about failed payment
     await sendEmail(session.client_reference_id || "", "FAILED_PAYMENT")
@@ -87,7 +92,7 @@ const handleCheckoutExpired = async (event: Stripe.Event) => {
     const session = event.data.object as Stripe.Checkout.Session
 
     // update payment status on transaction
-    await updatePaymentStatus(session.id, "EXPIRED")
+    await updatePaymentStatus(session.id, TransactionStatus.EXPIRED)
 }
 
 const parseWebhook = (_event: APIGatewayProxyEvent) : Stripe.Event => {
@@ -117,11 +122,11 @@ export const handler = async (_event: APIGatewayProxyEvent): Promise<APIGatewayP
                 await handleCheckoutExpired(stripeEvent)
             default:
                 throw new Error(`Unhandled event type: ${eventType}`)
-                break;
         }
 
         return newStatusResponse(200)
     } catch (err) {
+        console.error(err)
         return newInternalServerErrorResponse()
     }
 };

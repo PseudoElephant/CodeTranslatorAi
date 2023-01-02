@@ -1,82 +1,153 @@
 service: 'codetranslator-ai'
 plugins:
-  - serverless-esbuild
+  # - serverless-esbuild
   - serverless-offline
-package:
-   individually: true
+useDotenv: true
 provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
   tracing:
       apiGateway: true
-
+      # only include the Prisma binary required on AWS Lambda while packaging
+package:
+  individually: true
+layers:
+  TopicPrismaAwsNodeModules:
+    path: lambda-layers-node_modules
+    package: 
+      artifact: layers/lambda-layers-node_modules/lambda-layers-node_modules.zip
+  TopicPrismaAwsLibs:
+    path: lambda-layers-libs
+    package: 
+      artifact: layers/lambda-layers-libs/lambda-layers-libs.zip
+  TopicPrismaAwsPrismaClient:
+    path: lambda-layers-prisma-client
+    package:
+      artifact: layers/lambda-layers-prisma-client/lambda-layers-prisma-client.zip
 functions:
   authorizer:
-    handler: src/functions/authorizer/index.handler
+    handler: authorizer/index.handler
+    environment:
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
+    package:
+      artifact: src/functions/authorizer/authorizer.zip
   checkout-session:
-    handler: src/functions/checkout-session/index.handler
+    handler: checkout-session/index.handler
     environment:
       DOMAIN: 'https://localhost:3000'
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
+    package:
+      artifact: src/functions/checkout-session/checkout-session.zip
     events:
       - http:
           method: POST
           path: checkout-session/
+          cors: true
           authorizer:
             name: authorizer
             type: request
             resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
-
-            
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
   login:
-    handler: src/functions/login/index.handler
+    handler: login/index.handler
     environment:
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
       SESSION_LIFE_TIME_SECONDS: 345600 # 4 * 24 * 60 * 60 - 4 days 
+      PRISMA_BINARY_TARGET: rhel-openssl-1.0.x
+      NODE_ENV: production
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
     events:
       - http:
+          cors: true
           method: POST
           path: login/
+    package:
+      artifact: src/functions/login/login.zip
   logout:
-    handler: src/functions/logout/index.handler
+    handler: logout/index.handler
     events:
       - http:
+          cors: true
           method: POST
           path: logout/
           authorizer: 
             name: authorizer
             identitySource: method.request.header.Authorization
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
+    package:
+      artifact: src/functions/logout/logout.zip
+    environment:
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
   sign-up:
-    handler: src/functions/sign-up/index.handler
+    handler: sign-up/index.handler
     events:
       - http:
+          cors: true
           method: POST
           path: sign-up/
-  stripe-webhook-handler:
-    handler: src/functions/stripe-webhook-handler/index.handler
     environment:
-      STRIPE_SECRET_KEY: ${file(./config.production.json):STRIPE_SECRET_KEY}
-      STRIPE_WEBHOOK_KEY: ${file(./config.production.json):STRIPE_WEBHOOK_KEY}
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
+    package:
+      artifact: src/functions/sign-up/sign-up.zip
+  stripe-webhook-handler:
+    handler: stripe-webhook-handler/index.handler
+    environment:
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
+      STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_KEY: ${env:STRIPE_WEBHOOK_KEY}
+
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
     events:
       - http: 
+          cors: true
           method: POST
           path: webhook-stripe/
+    package:
+      artifact: src/functions/stripe-webhook-handler/stripe-webhook-handler.zip
   translate:
-    handler: src/functions/translate/index.handler
+    handler: translate/index.handler
     timeout: 20
     environment:
-      DATABASE_URL: ${file(./config.production.json):DATABASE_URL}
-      OPENAI_API_KEY: ${file(./config.production.json):OPENAI_API_KEY}
+      DATABASE_URL: ${env:PRISMA_DATABASE_URL}
+      OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    layers:
+      - { Ref: TopicPrismaAwsNodeModulesLambdaLayer }
+      - { Ref: TopicPrismaAwsLibsLambdaLayer }
+      - { Ref: TopicPrismaAwsPrismaClientLambdaLayer }
     events:
       - http: 
           method: POST
           path: translate/
+          cors: true
           authorizer:
             name: authorizer
             type: request
             resultTtlInSeconds: 300
             identitySource: method.request.header.Authorization
-	
+    package:
+      artifact: src/functions/translate/translate.zip
 resources:
   Resources:
     GatewayResponseDefault4XX:
@@ -86,5 +157,14 @@ resources:
           gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
           gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
         ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
         RestApiId:
           Ref: 'ApiGatewayRestApi'

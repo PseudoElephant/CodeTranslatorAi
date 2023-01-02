@@ -1,0 +1,189 @@
+# ./.github/workflows/deploy-lambdas.yml
+
+name: Deploy lambdas
+on:
+  push:
+    branches:
+      - "deploy-testing"
+
+defaults:
+  run:
+    working-directory: ./backend
+
+jobs:
+  build-node_modules-lambda-layer:
+    name: Build node_modules layer
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      # Only install PROD packages i.e. no `@types/*` packages or dev-related packages
+      - name: Install PROD packages
+        run: npm install --omit=dev
+
+      - name: Prepare lambda layer
+        run: bash ./src/scripts/prepare-node-modules-lambda-layer.sh
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: lambda-layers-node_modules
+          path: backend/lambda-layers-node_modules
+          if-no-files-found: error
+
+  build-prisma-client-lambda-layer:
+    name: Build. @prisma/client layer
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Install ALL packages
+        run: npm ci # clean install
+
+      # Generate Prisma Client and binary that can run in a lambda environment
+      - name: Prepare prisma client
+        run: npm run prisma:generate:prod
+
+      - name: Prepare "@prisma/client" lambda layer
+        run: bash ./src/scripts/prepare-prisma-client-lambda-layer.sh
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: lambda-layers-prisma-client
+          path: backend/lambda-layers-prisma-client
+          if-no-files-found: error
+
+  build-libs-lambda-layers:
+    name: Build. @libs layer
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Install ALL packages
+        run: npm ci
+
+      - name: Prepare prisma client
+        run: npm run prisma:generate:prod
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Prepare "@libs/*"" lambda layer
+        run: bash ./src/scripts/prepare-libs-lambda-layer.sh
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: lambda-layers-libs
+          path: backend/lambda-layers-libs
+          if-no-files-found: error
+
+  build-lambdas:
+    name: Build lambdas
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Install ALL packages
+        run: npm ci
+
+      - name: Prepare prisma client
+        run: npm run prisma:generate:prod
+
+      - name: Build lambdas
+        run: npm run build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-lambdas
+          path: backend/build/functions
+
+  deploy-lambdas:
+    name: Deploy lambdas
+    needs:
+      [
+        build-node_modules-lambda-layer,
+        build-prisma-client-lambda-layer,
+        build-libs-lambda-layers,
+        build-lambdas,
+      ]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-lambdas
+          path: backend/build/functions
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: lambda-layers-node_modules
+          path: backend/build/functions/lambda-layers-node_modules
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: lambda-layers-libs
+          path: backend/build/functions/lambda-layers-libs
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: lambda-layers-prisma-client
+          path: backend/build/functions/lambda-layers-prisma-client
+
+      - name: Unzip layers
+        run: |
+          tar -C ./build/functions/lambda-layers-node_modules -xf ./build/functions/lambda-layers-node_modules/nodejs.tar.gz
+          rm -rf ./build/functions/lambda-layers-node_modules/nodejs.tar.gz
+          tar -C ./build/functions/lambda-layers-libs -xf ./build/functions/lambda-layers-libs/nodejs.tar.gz
+          rm -rf ./build/functions/lambda-layers-libs/nodejs.tar.gz
+          tar -C ./build/functions/lambda-layers-prisma-client -xf ./build/functions/lambda-layers-prisma-client/nodejs.tar.gz
+          rm -rf ./build/functions/lambda-layers-prisma-client/nodejs.tar.gz
+
+      - name: Move serverless.yml
+        run: mv serverless.yml ./build/functions/serverless.yml
+
+      - name: Install Serverless
+        run:  npm i -g serverless@3.x
+
+      - name: Deploy lambdas and layers
+        run: |
+            cd build/functions && serverless deploy --verbose 
+        env:
+          # SERVICE_ROOT: ./build/functions
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_CI }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_CI }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          PRISMA_DATABASE_URL: ${{ secrets.PRISMA_DATABASE_URL }}
+          PRISMA_BINARY_TARGET: rhel-openssl-1.0.x
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_KEY: ${{ secrets.STRIPE_WEBHOOK_KEY }}

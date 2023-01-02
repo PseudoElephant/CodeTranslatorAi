@@ -1,11 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { Configuration, OpenAIApi } from "openai";
 import { ZodError } from 'zod'
-import { decrementUserTranslations, getUserTranslations } from '@/storage/user';
-import { newForbiddenResponse, newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@/apigateway/response';
-import { errorMap } from '@/error';
-import { validateRequest } from '@/apigateway/validateRequest';
-import { isApiGatewayProxyResult } from '@/apigateway/guards';
+import { decrementUserTranslations, getUserTranslations } from '@libs/storage/user';
+import { newForbiddenResponse, newInternalServerErrorResponse, newInvalidRequestResponse, newSuccessResponse } from '@libs/apigateway/response';
+import { errorMap } from '@libs/error';
+import { validateRequest } from '@libs/apigateway/validateRequest';
+import { isApiGatewayProxyResult } from '@libs/apigateway/guards';
 
 import { TranslatorRequest } from './models';
 
