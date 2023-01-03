@@ -21,6 +21,8 @@ type Dropdown = {
   }[];
   ariaLabel: string;
   placeholder: string;
+  value: string;
+  setValue: (language: string) => void;
 };
 
 const SelectItem = ({ children, value }: SelectItem) => {
@@ -37,15 +39,21 @@ const SelectItem = ({ children, value }: SelectItem) => {
   );
 };
 
-const Dropdown = ({ placeholder, ariaLabel, groups }: Dropdown) => {
+const Dropdown = ({
+  placeholder,
+  ariaLabel,
+  groups,
+  value,
+  setValue,
+}: Dropdown) => {
   return (
-    <Select.Root>
+    <Select.Root value={value} onValueChange={setValue}>
       <Select.Trigger
         aria-label={ariaLabel}
-        className="bg-neutral-1 inline-flex items-center justify-between rounded text-xs leading-none h-8 w-full px-4 gap-1 border shadow-neutral-6 hover:bg-neutral-3"
+        className="bg-neutral-2 inline-flex items-center justify-between rounded text-xs leading-none h-8 w-full px-4 gap-1 border shadow-neutral-6 hover:bg-neutral-3"
       >
         <Select.Value placeholder={placeholder} />
-        <Select.Icon className="text-primary-11 justify-self-end">
+        <Select.Icon className="text-primary-10 justify-self-end">
           <ChevronDownIcon />
         </Select.Icon>
       </Select.Trigger>
@@ -57,7 +65,7 @@ const Dropdown = ({ placeholder, ariaLabel, groups }: Dropdown) => {
           <Select.Viewport className="p-1">
             {groups.map((group, group_index: number) => (
               <>
-                <Select.Group>
+                <Select.Group key={group_index}>
                   <Select.Label className="text-xs leading-6 px-6 text-neutral-11">
                     {group.group_label}
                   </Select.Label>

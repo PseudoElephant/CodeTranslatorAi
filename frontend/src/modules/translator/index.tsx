@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import Dropdown from "../../common/components/dropdown";
+import { useGlobalStore } from "../../common/stores/globalStore";
 import CodeEditor from "./components/codeEditor";
 
 const Languages = [
@@ -21,10 +22,15 @@ const Languages = [
 ];
 
 const Translator = () => {
-  const [doc, setDoc] = useState<string>("# Hello, World!\n");
+  const [doc, setDoc] = useState<string>(
+    "# Hello, World!\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+  );
   const handleDocChange = useCallback((newDoc: string) => {
     setDoc(newDoc);
   }, []);
+
+  const fromLanguage = useGlobalStore((state) => state.language);
+  const setFromLanguage = useGlobalStore((state) => state.setLanguage);
 
   return (
     <div>
@@ -35,23 +41,27 @@ const Translator = () => {
             placeholder="Select a language..."
             ariaLabel="FromLanguage"
             groups={Languages}
+            value={fromLanguage}
+            setValue={setFromLanguage}
           />
         </div>
         <div className="flex items-center gap-2 col-span-5 col-start-7">
           <p className="text-sm font-bold">To</p>
-          <Dropdown
+          {/* <Dropdown
             placeholder="Select a language..."
             ariaLabel="ToLanguage"
             groups={Languages}
-          />
+          /> */}
         </div>
       </div>
       <div className="w-full h-px bg-neutral-6" />
-      <div className="w-full h-80 bg-neutral-2 rounded-md p-3 grid grid-cols-2 gap-3">
-        <div className="w-full bg-neutral-3 rounded-md">
+      <div className="w-full h-full bg-neutral-2 rounded-md p-3 grid grid-cols-2 gap-3">
+        <div className="w-full bg-neutral-3 rounded-md overflow-hidden">
           <CodeEditor initialDoc={doc} onChange={handleDocChange} />
         </div>
-        <div className="w-full bg-neutral-3 rounded-md"></div>
+        <div className="w-full bg-neutral-3 rounded-md overflow-hidden">
+          <CodeEditor initialDoc="Test" onChange={handleDocChange} />
+        </div>
       </div>
     </div>
   );

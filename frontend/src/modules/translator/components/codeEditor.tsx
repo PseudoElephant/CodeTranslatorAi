@@ -2,6 +2,9 @@ import React, { useCallback, useEffect } from "react";
 import { EditorState } from "@codemirror/state";
 import useCodeMirror from "../hooks/use-codemirror";
 
+import { useGlobalStore } from "../../../common/stores/globalStore";
+import StringToFunction from "../utils/stringToFunction";
+
 interface Props {
   initialDoc: string;
   onChange: (doc: string) => void;
@@ -14,16 +17,22 @@ const CodeEditor: React.FC<Props> = (props) => {
     [onChange]
   );
 
-  const [refContainer, editorView] = useCodeMirror<HTMLDivElement>({
-    initialDoc: initialDoc,
-    onChange: handleChange,
-  });
+  const [refContainer, editorView, languageConf] =
+    useCodeMirror<HTMLDivElement>({
+      initialDoc: initialDoc,
+      onChange: handleChange,
+    });
+
+  const language = StringToFunction(useGlobalStore((state) => state.language));
 
   useEffect(() => {
     if (editorView) {
+      editorView.dispatch({
+        effects: languageConf?.reconfigure(language),
+      });
     } else {
     }
-  }, [editorView]);
+  }, [language]);
 
   return (
     <div
