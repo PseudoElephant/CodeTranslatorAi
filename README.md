@@ -1,7 +1,11 @@
 # CodeTranslatorAi
-Repository for the CodeTranslatorAi.com website. 
+Repository for the CodeTranslatorAi.com website. The following are mockups for the frontend.
 
-[Picture 1]
+![Picture 1](/images/White_Theme_Mockup_2.png)
+
+![Picture 3](/images/Dark_Theme_Mockup.png)
+
+![Picture 5](/images/Payment_Page_Mockup.png)
 
 A project to explore the possibilities of language models like the ones developed by OpenAI. CodeTranslatorAI uses Codex in order to translate between different programming languages.
 
@@ -22,37 +26,13 @@ The following is an exhaustive list of features available on CodeTranslatorAi:
 A lot of the limitations for this project come directly from the language model Codex as it is not powerful enough to perform certain tasks. The following are examples of a couple limitations we have detected while using our tool.
 
 ### Import Statement Limbo
-Often when the code we paste-in has a lot of import statements, Codex will only output import statememnts in return, instead of the properly translated code. *Example:*
-
-**Input:**
-```Typescript
-```
-
-**Output:**
-```Something Else
-```
+Often when the code we paste-in has a lot of import statements, Codex will only output import statememnts in return, instead of the properly translated code. 
 
 ### Running Out of Tokens
-When the code we want to translate is too large Codex sometimes fails to provide the complete output. This can be very annoying as it often feels cheap. *Example:*
-
-**Input:**
-```Typescript
-```
-
-**Output:**
-```Something Else
-```
+When the code we want to translate is too large Codex sometimes fails to provide the complete output. This can be very annoying as it often feels cheap. 
 
 ### Improper Translations
-Ocassionally Codex will provide improper translations. This is also not good for a service, as it can not provide its user with assurance. *Example:*
-
-**Input:**
-```Typescript
-```
-
-**Output:**
-```Something Else
-```
+Ocassionally Codex will provide improper translations. This is also not good for a service, as it can not provide its user with assurance. 
 
 ## Future Work
 ---
